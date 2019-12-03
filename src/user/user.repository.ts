@@ -87,8 +87,9 @@ export class UserRepository extends Repository<UserEntity> {
     }
 
     async getUserByName( name: string ): Promise<UserEntity> {
-        const found = await this.findOne(name, { relations: ['profile', 'profile.watchedTags',
-                                            'profile.watchedMarkets', 'profile.watchedExchanges'] });
+        const found = await this.findOne({name}, { relations: [
+            'listingRatings', 'profile', 'profile.watchedTags',
+            'profile.watchedMarkets', 'profile.watchedExchanges'] });
         return found;
     }
 

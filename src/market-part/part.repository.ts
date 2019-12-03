@@ -69,7 +69,7 @@ export class PartRepository extends Repository<Part> {
         part.info = info;
         part.images = images;
         part.market = market;
-        part.status = ListingStatus.RECEIVED;
+        part.status = ListingStatus.TO_REVIEW;
         part.year = year;
         part.manufacturer = manufacturer;
 

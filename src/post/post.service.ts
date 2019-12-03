@@ -16,6 +16,7 @@ import { PriceRatingInfoRepository } from 'src/exchange-price-rating-info/price-
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { PostType } from 'src/shared/enums/post-type.enum';
 import { MarketRepository } from 'src/market/market.repository';
+import { DeletePostDto } from './dto/delete-post-dto';
 
 @Injectable()
 export class PostService {
@@ -82,10 +83,10 @@ export class PostService {
         return post;
     }
 
-    async deletePost(id: string): Promise<void> {
-        const result = await this.postRepository.delete(id);
+    async deletePost(deletePostDto: DeletePostDto): Promise<void> {
+        const result = await this.postRepository.delete(deletePostDto.posts);
         if (result.affected === 0) {
-            throw new NotFoundException(`Post with ID ${id} not found`);
+            throw new NotFoundException(`Post with ID not found`);
         }
     }
 

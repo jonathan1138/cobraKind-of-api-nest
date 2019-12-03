@@ -7,6 +7,7 @@ import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filte
 import { ListingRating } from './listing-rating.entity';
 import { CreateListingRatingDto } from './dto/create-listing-rating-dto';
 import { UserEntity } from 'src/user/entities/user.entity';
+import { DeleteListingRatingDto } from './dto/delete-listing-rating-dto';
 
 @Injectable()
 export class ListingRatingService {
@@ -36,10 +37,10 @@ export class ListingRatingService {
         return this.listingRatingRepository.createListingRating(createListingRatingDto, exchange, user);
     }
 
-    async deleteListingRating(id: string): Promise<void> {
-        const result = await this.listingRatingRepository.delete(id);
+    async deleteListingRating(deleteListingRatingDto: DeleteListingRatingDto): Promise<void> {
+        const result = await this.listingRatingRepository.delete(deleteListingRatingDto.listingratings);
         if (result.affected === 0) {
-            throw new NotFoundException(`ListingRating with ID ${id} not found`);
+            throw new NotFoundException(`ListingRating with ID not found`);
         }
     }
 

@@ -43,7 +43,7 @@ export class ProfileService {
         return this.userRepository.checkUserId(id);
     }
 
-    async updatePreferredTags(id: string, tags: TagData[] ): Promise<void> {
+    async updateWatchedTags(id: string, tags: TagData[] ): Promise<void> {
         const user = await this.userRepository.getUserById(id);
         const profile = await this.profileRepository.findOne(user.profile.id);
         profile.watchedTags = await this.processTags(tags);
@@ -59,7 +59,7 @@ export class ProfileService {
             assureArray = [...tags];
         }
         const uploadPromises = assureArray.map(async (tag, index: number) => {
-            const foundTag = await this.tagRepository.tagsByName(tag);
+            const foundTag = await this.tagRepository.tagsById(tag);
             if (foundTag) {
                 newTags.push(foundTag);
             }
@@ -68,7 +68,7 @@ export class ProfileService {
         return newTags;
     }
 
-    async updatePreferredMarkets(id: string, markets: string[] ): Promise<void> {
+    async updateWatchedMarkets(id: string, markets: string[] ): Promise<void> {
         const user = await this.userRepository.getUserById(id);
         const profile = await this.profileRepository.findOne(user.profile.id);
         profile.watchedMarkets = await this.processMarkets(markets);
@@ -84,7 +84,8 @@ export class ProfileService {
             assureArray = [...markets];
         }
         const uploadPromises = assureArray.map(async (market, index: number) => {
-            const foundMarket = await this.marketRepository.findOne({name: market});
+            // formerly find one by name; changed on 11/24
+            const foundMarket = await this.marketRepository.findOne({id: market});
             if (foundMarket) {
                 newMarkets.push(foundMarket);
             }
@@ -93,7 +94,7 @@ export class ProfileService {
         return newMarkets;
     }
 
-    async updatePreferredExchanges(id: string, exchanges: string[] ): Promise<void> {
+    async updateWatchedExchanges(id: string, exchanges: string[] ): Promise<void> {
         const user = await this.userRepository.getUserById(id);
         const profile = await this.profileRepository.findOne(user.profile.id);
         profile.watchedExchanges = await this.processExchanges(exchanges);
@@ -109,7 +110,8 @@ export class ProfileService {
             assureArray = [...exchanges];
         }
         const uploadPromises = assureArray.map(async (exchange, index: number) => {
-            const foundExchange = await this.exchangeRepository.findOne({name: exchange});
+            // formerly find one by name; changed on 11/24
+            const foundExchange = await this.exchangeRepository.findOne({id: exchange});
             if (foundExchange) {
                 newExchanges.push(foundExchange);
             }

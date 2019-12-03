@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { IpAddress } from 'src/shared/decorators/get-user-ip.decorator';
+import { DeletePostDto } from './dto/delete-post-dto';
 
 // @UseGuards(AuthGuard())
 @Controller('post')
@@ -55,13 +56,15 @@ export class PostController {
         return this.postService.createPost(createPostDto, exchangeId, user, images);
     }
 
-    @Delete('/:id')
-    deletePost(
-        @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.postService.deletePost(id);
+    @Delete()
+    @UseGuards(AuthGuard())
+    deletePosts(
+        @Body(ValidationPipe) deletePostDto: DeletePostDto ): Promise<void> {
+        return this.postService.deletePost(deletePostDto);
     }
 
     @Patch('/status/:id')
+    @UseGuards(AuthGuard())
     updateexchangeStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
@@ -70,12 +73,14 @@ export class PostController {
     }
 
     @Post('/images/:id')
+    @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('image'))
     uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.postService.uploadPostImage(id, image);
     }
 
     @Post('/watch/:id')
+    @UseGuards(AuthGuard())
     @UseGuards(AuthGuard())
     watch(@Param('id') id: string, @GetUser() user: UserEntity) {
       return this.postService.watchPost(id, user.id);
@@ -88,7 +93,8 @@ export class PostController {
     }
 
     @Delete('/images/:id')
-    deleteCategoryImages(
+    @UseGuards(AuthGuard())
+    deletePostImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.postService.deletePostImages(id);
     }

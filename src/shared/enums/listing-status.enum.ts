@@ -1,5 +1,4 @@
 export enum ListingStatus {
-    RECEIVED = 'RECEIVED',
-    PENDING_REVIEW = 'PENDING_REVIEW',
+    TO_REVIEW = 'TO_REVIEW',
     APPROVED = 'APPROVED',
 }

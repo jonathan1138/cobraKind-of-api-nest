@@ -36,7 +36,7 @@ export class UserController {
     }
 
     @Post('/signuplogin')
-    signUpLogin(@Body(ValidationPipe) createUserDto: CreateUserDto): Promise<{ accessToken: string }> {
+    signUpLogin(@Body(ValidationPipe) createUserDto: CreateUserDto): Promise<{ accessToken: string, user: UserEntity }> {
         return this.usersService.signUpLogin(createUserDto);
     }
 

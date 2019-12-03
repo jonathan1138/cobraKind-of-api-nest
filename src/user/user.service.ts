@@ -29,7 +29,7 @@ export class UserService {
     return this.userRepository.signUp(createUserDto);
   }
 
-  async signUpLogin(createUserDto: CreateUserDto): Promise<{ accessToken: string }> {
+  async signUpLogin(createUserDto: CreateUserDto): Promise<{ accessToken: string, user: UserEntity }> {
     await this.userRepository.signUp(createUserDto);
     return this.authService.signInWithName(createUserDto);
   }

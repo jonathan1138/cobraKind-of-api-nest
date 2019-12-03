@@ -30,6 +30,10 @@ export class TagService {
         return this.tagRepository.tagsByName(name);
     }
 
+    async tagsById(id: string): Promise<Tag> {
+        return this.tagRepository.tagsById(id);
+    }
+
     async tagsForMarket(id: string): Promise<Tag[]> {
         return this.tagRepository.tagsForMarket(id);
     }

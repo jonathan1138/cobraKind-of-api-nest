@@ -161,7 +161,7 @@ export class ExchangeRepository extends Repository<Exchange> {
         exchange.info = info;
         exchange.images = images;
         exchange.market = market;
-        exchange.status = ListingStatus.RECEIVED;
+        exchange.status = ListingStatus.TO_REVIEW;
         exchange.year = year;
         exchange.manufacturer = manufacturer;
         exchange.priceRatingInfo = priceRating;

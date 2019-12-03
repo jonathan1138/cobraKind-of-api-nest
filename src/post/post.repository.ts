@@ -93,7 +93,7 @@ export class PostRepository extends Repository<PostEntity> {
         post.images = images;
         post.price = price;
         post.postType = postType;
-        post.status = ListingStatus.RECEIVED;
+        post.status = ListingStatus.TO_REVIEW;
         post.exchange = exchange;
         post.market = market;
         post.subItem = null;

@@ -23,27 +23,30 @@ export class ProfileController {
     }
 
     @Patch('/tags/:id')
-    updatePreferredTags(
+    @UseGuards(AuthGuard())
+    updateWatchedTags(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('tags', TagDataValidationPipe) tags: TagData[],
         ): Promise<void> {
-            return this.profileService.updatePreferredTags(id, tags);
+            return this.profileService.updateWatchedTags(id, tags);
     }
 
     @Patch('/markets/:id')
-    updatePreferredMarkets(
+    @UseGuards(AuthGuard())
+    updateWatchedMarkets(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('markets') markets: string[],
         ): Promise<void> {
-            return this.profileService.updatePreferredMarkets(id, markets);
+            return this.profileService.updateWatchedMarkets(id, markets);
     }
 
     @Patch('/exchanges/:id')
-    updatePreferredExchanges(
+    @UseGuards(AuthGuard())
+    updateWatchedExchanges(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('exchanges') exchanges: string[],
         ): Promise<void> {
-            return this.profileService.updatePreferredExchanges(id, exchanges);
+            return this.profileService.updateWatchedExchanges(id, exchanges);
     }
 
     @Post('uploadPhoto/:id')

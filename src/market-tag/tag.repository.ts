@@ -56,4 +56,16 @@ export class TagRepository extends Repository<Tag> {
             throw new NotAcceptableException('Invalid Tag Supplied');
         }
     }
+
+    async tagsById(id: string): Promise<Tag> {
+        const query = this.createQueryBuilder('tag');
+        query.andWhere('tag.id = :id', { id });
+        try {
+            const found = await query.getOne();
+            return found;
+        } catch (error) {
+           // this.logger.error(`Invalid Tag Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Tag Supplied');
+        }
+    }
 }

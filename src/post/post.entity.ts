@@ -12,6 +12,12 @@ export class PostEntity extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column('uuid')
+    public exchangeId!: string;
+
+    @Column('uuid')
+    public ownerId!: string;
+
     @Column()
     title: string;
 

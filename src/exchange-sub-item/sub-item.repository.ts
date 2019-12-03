@@ -69,7 +69,7 @@ export class SubItemRepository extends Repository<SubItem> {
         subItem.info = info;
         subItem.images = images;
         subItem.exchange = exchange;
-        subItem.status = ListingStatus.RECEIVED;
+        subItem.status = ListingStatus.TO_REVIEW;
         subItem.subPriceRatingInfo = priceRating;
 
         try {

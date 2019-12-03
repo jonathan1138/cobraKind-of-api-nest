@@ -11,8 +11,6 @@ export class TagDataValidationPipe implements PipeTransform {
                 throw new BadRequestException(`"${value}" is an invalid status`);
             }
             return value;
-        } else {
-            throw new NotAcceptableException(`Invalid Body Value Supplied`);
         }
     }
     private isTagValid(tags: any) {
@@ -22,7 +20,6 @@ export class TagDataValidationPipe implements PipeTransform {
         } else {
             assureArray = [...tags];
         }
-
         assureArray.forEach((tag) => {
             const idx = this.allowedTag.indexOf(tag);
             return idx !== -1;

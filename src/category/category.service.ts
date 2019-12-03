@@ -8,6 +8,7 @@ import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { ImgFolder } from '../shared/enums/upload-img-folder.enum';
 import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
 import { FileReaderService } from '../shared/services/csvFileReaders/fileReader.service';
+import { create } from 'domain';
 
 @Injectable()
 export class CategoryService {
@@ -44,6 +45,14 @@ export class CategoryService {
             return this.categoryRepository.createCategory(createCategoryDto);
         } else {
             throw new ConflictException('Category already exists');
+        }
+    }
+
+    async updateCategory(id: string, createCategoryDto: CreateCategoryDto): Promise<void> {
+        if ( createCategoryDto.name || createCategoryDto.info ) {
+          return this.categoryRepository.updateCategory(id, createCategoryDto);
+        } else {
+          throw new NotAcceptableException(`Update details not provided`);
         }
     }
 

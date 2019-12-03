@@ -29,6 +29,11 @@ constructor( private tagService: TagService ) {}
         return this.tagService.tagsByName(name);
     }
 
+    @Get('/:id')
+    tagById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Tag> {
+        return this.tagService.tagsById(id);
+    }
+
     @Get('markets/:id')
     tagsForMarket(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<Tag[]> {

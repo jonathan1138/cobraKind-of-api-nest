@@ -110,7 +110,7 @@ export class MarketRepository extends Repository<Market> {
         market.info = info;
         market.images = images;
         market.category = category;
-        market.status = ListingStatus.RECEIVED;
+        market.status = ListingStatus.TO_REVIEW;
         market.tags = tags;
         market.marketShape = marketShape;
         market.marketShape.namingConvention = market.name;

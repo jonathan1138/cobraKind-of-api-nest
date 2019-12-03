@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ExtractJwt } from 'passport-jwt';
 import * as config from 'config';
+import { UserEntity } from '../user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-    async signInWithName(authCredentialDto: AuthCredentialsDto): Promise<{ accessToken: string }> {
+    async signInWithName(authCredentialDto: AuthCredentialsDto): Promise<{ accessToken: string, user: UserEntity }> {
         const name = await this.userRepository.validateUserPasswordByName(authCredentialDto);
         if (!name) {
             throw new UnauthorizedException('Invalid Credentials');
@@ -24,6 +25,8 @@ export class AuthService {
         const payload: JwtPayload = { name };
         const accessToken = await this.jwtService.sign(payload);
         this.logger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
-        return { accessToken };
+        const user = await this.userRepository.getUserByName(authCredentialDto.name);
+        user.password = null;
+        return { accessToken, user };
     }
 }

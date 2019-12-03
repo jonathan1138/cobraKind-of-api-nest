@@ -77,7 +77,7 @@ export class CategoryRepository extends Repository<Category> {
         category.info = info;
         category.images = images;
 
-        category.status = ListingStatus.RECEIVED;
+        category.status = ListingStatus.TO_REVIEW;
         try {
             await category.save();
         } catch (error) {
@@ -89,6 +89,18 @@ export class CategoryRepository extends Repository<Category> {
             }
         }
         return category;
+    }
+
+    async updateCategory(id: string, createCategoryDto: CreateCategoryDto ): Promise<void> {
+        const category = await this.getCategoryById(id);
+        const { name, info } = createCategoryDto;
+        category.name = name;
+        category.info = info;
+        try {
+            await category.save();
+         } catch (error) {
+            throw new InternalServerErrorException('Failed to update Category. Check with administrator');
+        }
     }
 
     async isNameUnique(name: string): Promise<boolean> {

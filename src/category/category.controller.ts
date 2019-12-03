@@ -55,17 +55,28 @@ export class CategoryController {
     }
 
     @Delete('/:id')
+    @UseGuards(AuthGuard())
     deleteCategory(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.categoryService.deleteCategory(id);
     }
 
     @Patch('/status/:id')
+    @UseGuards(AuthGuard())
     updatecategoryStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
         ): Promise<Category> {
             return this.categoryService.updateCategoryStatus(id, status);
+    }
+
+    @Patch('/update/:id')
+    @UseGuards(AuthGuard())
+    updatecategory(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() createCategoryDto: CreateCategoryDto,
+        ): Promise<void> {
+            return this.categoryService.updateCategory(id, createCategoryDto);
     }
 
     @Post('/images/:id')
@@ -75,12 +86,14 @@ export class CategoryController {
     }
 
     @Delete('/images/:id')
+    @UseGuards(AuthGuard())
     deleteCategoryImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.categoryService.deleteCategoryImages(id);
     }
 
     @Post('/file/:dest')
+    @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file', multerOptions ))
         async upload(
         @Param('destination') destination: string,
@@ -91,6 +104,7 @@ export class CategoryController {
     }
 
     @Post('/importfiletodb')
+    @UseGuards(AuthGuard())
     importfiletodb(
         @Body('filename') filename: string): Promise<void> {
         return this.categoryService.loadCategoriesFile(filename);

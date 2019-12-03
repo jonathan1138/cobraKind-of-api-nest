@@ -6,7 +6,5 @@ export class CreateListingRatingDto {
     @Length(3, 255)
     comment: string;
 
-    @IsNumber()
-    @Max(5)
     rating: number;
 }

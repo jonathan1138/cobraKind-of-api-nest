@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { CreateListingRatingDto } from './dto/create-listing-rating-dto';
+import { DeleteListingRatingDto } from './dto/delete-listing-rating-dto';
 
 // @UseGuards(AuthGuard())
 @Controller('listingrating')
@@ -43,10 +44,11 @@ constructor(private listingRatingService: ListingRatingService) {}
         return this.listingRatingService.createListingRating(createListingRatingDto, exchangeId, user);
     }
 
-    @Delete('/:id')
-    deleteListingRating(
-        @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.listingRatingService.deleteListingRating(id);
+    @Delete()
+    @UseGuards(AuthGuard())
+    deleteListingRatings(
+        @Body() deleteListingRatingDto: DeleteListingRatingDto ): Promise<void> {
+        return this.listingRatingService.deleteListingRating(deleteListingRatingDto);
     }
 
     @Post('/like/:id')
