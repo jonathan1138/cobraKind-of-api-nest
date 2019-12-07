@@ -70,14 +70,15 @@ export class CategoryService {
         return category;
     }
 
-    async uploadCategoryImage(id: string, image: any): Promise<void> {
-        if (image) {
+    async uploadCategoryImages(id: string, images: any): Promise<string[]> {
+        if (images) {
             const category = await this.categoryRepository.getCategoryById(id);
-            if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.CATEGORY_IMG_FOLDER);
-                category.images.push(s3ImgUrl);
-                await category.save();
-            }
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.CATEGORY_IMG_FOLDER);
+            s3ImgUrlArray.forEach(item => {
+                category.images.push(item);
+            });
+            await category.save();
+            return category.images;
         } else {
             throw new NotAcceptableException(`File not found`);
         }

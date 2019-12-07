@@ -44,6 +44,7 @@ export class CategoryController {
     }
 
     @Post()
+    @UseGuards(AuthGuard())
     @UsePipes(ValidationPipe)
     @UseInterceptors(FilesInterceptor('images'))
     createCategory(
@@ -80,9 +81,10 @@ export class CategoryController {
     }
 
     @Post('/images/:id')
-    @UseInterceptors(FileInterceptor('image'))
-    uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.categoryService.uploadCategoryImage(id, image);
+    @UseGuards(AuthGuard())
+    @UseInterceptors(FilesInterceptor('image'))
+    uploadImage(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+        return this.categoryService.uploadCategoryImages(id, images);
     }
 
     @Delete('/images/:id')

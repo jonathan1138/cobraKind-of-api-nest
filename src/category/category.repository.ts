@@ -76,6 +76,7 @@ export class CategoryRepository extends Repository<Category> {
         category.name = name;
         category.info = info;
         category.images = images;
+        category.markets = [];
 
         category.status = ListingStatus.TO_REVIEW;
         try {

@@ -10,6 +10,5 @@ export class CreateCategoryDto {
     info: string;
 
     @IsOptional()
-    @IsArray()
     images: string[];
 }
