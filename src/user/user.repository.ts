@@ -94,7 +94,8 @@ export class UserRepository extends Repository<UserEntity> {
     }
 
     async getUserById(id: string): Promise<UserEntity> {
-        const found = await this.findOne(id, { relations: ['profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges'] });
+        const found = await this.findOne(id, { relations: ['listingRatings',
+            'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges'] });
         if (!found) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }

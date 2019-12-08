@@ -25,6 +25,7 @@ export class UserController {
     }
 
     @Get('/:id')
+    @UseInterceptors(ClassSerializerInterceptor)
     getUserById(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<UserEntity> {
         return this.usersService.getUserById(id);
