@@ -17,17 +17,17 @@ export class CategoryController {
     constructor(private categoryService: CategoryService) {}
 
     @Get()
-    getCategories(
-        @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
+    getCategories(@Query('page') page: number,
+                  @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         ): Promise<Category[]> {
-        return this.categoryService.getCategories(filterDto);
+        return this.categoryService.getCategories(filterDto, page);
     }
 
     @Get('/markets')
-    getCategoriesWithMarkets(
-        @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
+    getCategoriesWithMarkets(@Query('page') page: number,
+                             @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
     ): Promise<Category[]> {
-        return this.categoryService.getCategoriesWithMarkets(filterDto);
+        return this.categoryService.getCategoriesWithMarkets(filterDto, page);
     }
 
     @Get('/:id')

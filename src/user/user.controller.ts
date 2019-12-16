@@ -19,9 +19,10 @@ export class UserController {
     @Get()
     @UseGuards(AuthGuard())
     allUsers(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: GetUsersFilterDto,
         @GetUser() user: UserEntity): Promise<UserEntity[]> {
-        return this.usersService.getAllUsers(filterDto, user);
+        return this.usersService.getAllUsers(filterDto, user, page);
     }
 
     @Get('/:id')

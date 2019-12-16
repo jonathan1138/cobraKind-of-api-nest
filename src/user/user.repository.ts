@@ -61,7 +61,7 @@ export class UserRepository extends Repository<UserEntity> {
         }
     }
 
-    async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity): Promise<UserEntity[]> {
+    async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity, page: number = 1): Promise<UserEntity[]> {
         const isAdmin = await this.validateAdminUser(user);
         if (!isAdmin) {
             throw new UnauthorizedException('Invalid Credentials: not an administator');
@@ -77,6 +77,9 @@ export class UserRepository extends Repository<UserEntity> {
         query.leftJoinAndSelect('profile.watchedExchanges', 'exchange');
         query.leftJoinAndSelect('user_entity.listingRatings', 'listingRating');
         query.leftJoinAndSelect('user_entity.posts', 'posts');
+        query.take(15);
+        query.skip(15 * (page - 1));
+        query.orderBy('user_entity.name', 'ASC');
         try {
             const users = await query.getMany();
             return users;

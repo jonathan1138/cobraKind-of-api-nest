@@ -42,8 +42,8 @@ export class UserService {
     return this.userRepository.getUserById( id );
   }
 
-  async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity): Promise<UserEntity[]> {
-    return this.userRepository.getAllUsers(filterDto, user);
+  async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity, page: number = 1): Promise<UserEntity[]> {
+    return this.userRepository.getAllUsers(filterDto, user, page);
   }
 
   async deleteUser(id: string, currentUser: UserEntity): Promise<void> {

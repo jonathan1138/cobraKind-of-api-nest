@@ -19,16 +19,16 @@ export class CategoryService {
         private readonly fileReaderService: FileReaderService,
     ) {}
 
-    getCategories(filterDto: StatusAndSearchFilterDto): Promise<Category[]> {
-        return this.categoryRepository.getCategories(filterDto);
+    getCategories(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
+        return this.categoryRepository.getCategories(filterDto, page);
     }
 
     async getCategoryById(id: string): Promise<Category> {
         return await this.categoryRepository.findOne(id);
     }
 
-    async getCategoriesWithMarkets(filterDto: StatusAndSearchFilterDto): Promise<Category[]> {
-        return await this.categoryRepository.getCategoriesWithMarkets(filterDto);
+    async getCategoriesWithMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
+        return await this.categoryRepository.getCategoriesWithMarkets(filterDto, page);
     }
 
     async getCategoryWithMarketsById(filterDto: StatusAndSearchFilterDto, categoryId: string): Promise<Category> {
