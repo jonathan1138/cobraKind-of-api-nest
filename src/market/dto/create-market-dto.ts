@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsEnum } from 'class-validator';
-import { TagData } from '../../shared/enums/tag-data.enum';
 
 export class CreateMarketDto {
     @IsNotEmpty()
@@ -7,8 +6,7 @@ export class CreateMarketDto {
     name: string;
 
     @IsNotEmpty()
-    @IsEnum(TagData, {each: true})
-    tags: TagData[];
+    tags: string[];
 
     @IsOptional()
     @IsString()

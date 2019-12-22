@@ -1,6 +1,7 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { Tag } from './tag.entity';
-import { Logger, NotAcceptableException } from '@nestjs/common';
+import { Logger, NotAcceptableException, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 
 @EntityRepository(Tag)
 export class TagRepository extends Repository<Tag> {
@@ -66,6 +67,25 @@ export class TagRepository extends Repository<Tag> {
         } catch (error) {
            // this.logger.error(`Invalid Tag Supplied`, error.stack);
             throw new NotAcceptableException('Invalid Tag Supplied');
+        }
+    }
+
+    async createTag(name: string, categoryId: string): Promise<Tag> {
+        const tag = new Tag();
+        tag.name = name.replace(/,/g, ' ');
+        tag.categoryId = categoryId;
+        tag.status = ListingStatus.TO_REVIEW;
+        try {
+            await tag.save();
+            return tag;
+        } catch (error) {
+            if (error.code === '23505') { // duplicate cat name
+                this.logger.error(`Failed to create a Tag`, error.stack);
+                throw new ConflictException('Name for Tag already exists');
+            } else {
+                this.logger.error(`Failed to create a market`, error.stack);
+                throw new InternalServerErrorException();
+            }
         }
     }
 }

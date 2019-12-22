@@ -1,6 +1,9 @@
-import { Controller, Get, Param, ParseUUIDPipe, Body } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Body, UseGuards, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TagService } from './tag.service';
 import { Tag } from './tag.entity';
+import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
+import { ListingStatus } from 'src/shared/enums/listing-status.enum';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('tag')
 export class TagController {
@@ -44,5 +47,23 @@ constructor( private tagService: TagService ) {}
     getCategoryById(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<Tag[]> {
         return this.tagService.tagsByCategory(id);
+    }
+
+    @Patch('/status/:id')
+    @UseGuards(AuthGuard())
+    updatecategoryStatus(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        ): Promise<Tag> {
+            return this.tagService.updateTagStatus(id, status);
+    }
+
+    @Post('/:categoryid')
+    @UsePipes(ValidationPipe)
+    createTag(
+        @Param('categoryid', new ParseUUIDPipe()) categoryId: string,
+        @Body() name: string,
+        ): Promise<Tag> {
+        return this.tagService.createTag(name, categoryId);
     }
 }

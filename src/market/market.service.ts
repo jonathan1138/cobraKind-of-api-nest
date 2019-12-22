@@ -11,7 +11,6 @@ import { CategoryRepository } from 'src/category/category.repository';
 import { TagRepository } from '../market-tag/tag.repository';
 import { Tag } from 'src/market-tag/tag.entity';
 import { Uuid } from 'aws-sdk/clients/groundstation';
-import { TagData } from 'src/shared/enums/tag-data.enum';
 import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
 import { UserRepository } from 'src/user/user.repository';
 import { Profile } from '../user-profile/profile.entity';
@@ -118,7 +117,7 @@ export class MarketService {
         return market;
     }
 
-    async updateMarketTags(id: string, tags: TagData[] ): Promise<Market> {
+    async updateMarketTags(id: string, tags: string[] ): Promise<Market> {
         const market = await this.marketRepository.getMarketById(id);
         const processType = 'UPDATE';
         const processedTags = await this.processTags(market.categoryId, tags, processType);
@@ -154,7 +153,7 @@ export class MarketService {
         this.fileReaderService.importMarketFileToDb(filename);
     }
 
-    async processTags(catId: Uuid, tags: TagData[], processType: string): Promise<Tag[]> {
+    async processTags(catId: Uuid, tags: string[], processType: string): Promise<Tag[]> {
         const newTags: Tag[] = [];
         let assureArray = [];
         if ( !Array.isArray(tags) ) {
@@ -174,6 +173,7 @@ export class MarketService {
             }
             newTag.name = tag;
             newTag.categoryId = catId;
+            newTag.status = ListingStatus.TO_REVIEW;
             newTags.push(newTag);
         });
         await Promise.all(uploadPromises);

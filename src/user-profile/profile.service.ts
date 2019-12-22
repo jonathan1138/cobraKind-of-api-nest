@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileRepository } from './profile.repository';
 import { UserRepository } from 'src/user/user.repository';
-import { TagData } from 'src/shared/enums/tag-data.enum';
 import { Profile } from './profile.entity';
 import { TagRepository } from 'src/market-tag/tag.repository';
 import { Tag } from 'src/market-tag/tag.entity';
@@ -43,14 +42,14 @@ export class ProfileService {
         return this.userRepository.checkUserId(id);
     }
 
-    async updateWatchedTags(id: string, tags: TagData[] ): Promise<void> {
+    async updateWatchedTags(id: string, tags: string[] ): Promise<void> {
         const user = await this.userRepository.getUserById(id);
         const profile = await this.profileRepository.findOne(user.profile.id);
         profile.watchedTags = await this.processTags(tags);
         this.profileRepository.save(profile);
     }
 
-    private async processTags(tags: TagData[]): Promise<Tag[]> {
+    private async processTags(tags: string[]): Promise<Tag[]> {
         const newTags: Tag[] = [];
         let assureArray = [];
         if ( !Array.isArray(tags) ) {

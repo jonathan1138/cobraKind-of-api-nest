@@ -10,8 +10,6 @@ import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
-import { TagData } from '../shared/enums/tag-data.enum';
-import { TagDataValidationPipe } from 'src/shared/pipes/tagData-validation.pipe';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { IpAddress } from 'src/shared/decorators/get-user-ip.decorator';
@@ -101,7 +99,7 @@ export class MarketController {
     @Patch('/tag/:id')
     updateMarketTags(
         @Param('id', new ParseUUIDPipe()) id: string,
-        @Body('tags', TagDataValidationPipe) tags: TagData[],
+        @Body('tags') tags: string[],
         ): Promise<Market> {
             return this.marketService.updateMarketTags(id, tags);
     }

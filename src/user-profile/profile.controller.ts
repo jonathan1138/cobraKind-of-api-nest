@@ -4,9 +4,8 @@ import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
 import { ProfileService } from './profile.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
-import { TagDataValidationPipe } from 'src/shared/pipes/tagData-validation.pipe';
-import { TagData } from 'src/shared/enums/tag-data.enum';
 import { Profile } from './profile.entity';
+import { Tag } from 'src/market-tag/tag.entity';
 
 @Controller('profile')
 export class ProfileController {
@@ -26,7 +25,7 @@ export class ProfileController {
     @UseGuards(AuthGuard())
     updateWatchedTags(
         @Param('id', new ParseUUIDPipe()) id: string,
-        @Body('tags', TagDataValidationPipe) tags: TagData[],
+        @Body('tags') tags: string[],
         ): Promise<void> {
             return this.profileService.updateWatchedTags(id, tags);
     }
