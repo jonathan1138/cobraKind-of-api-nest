@@ -29,4 +29,12 @@ export class AuthService {
         user.password = null;
         return { accessToken, user };
     }
+
+    async refreshToken(user: UserEntity): Promise<{accessToken: string}> {
+        const name = user.name;
+        const payload: JwtPayload = { name };
+        const accessToken = await this.jwtService.sign(payload);
+        this.logger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
+        return { accessToken };
+    }
 }

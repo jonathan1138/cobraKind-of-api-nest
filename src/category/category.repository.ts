@@ -11,8 +11,10 @@ export class CategoryRepository extends Repository<Category> {
 
     async getCategories(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
         const query = this.buildQuery(filterDto);
-        query.take(15);
-        query.skip(15 * (page - 1));
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
         query.orderBy('name', 'ASC');
         try {
             const categories = await query.getMany();
@@ -25,16 +27,15 @@ export class CategoryRepository extends Repository<Category> {
 
     async getCategoriesWithMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
         const query = this.buildQuery(filterDto);
-
         if (filterDto.status) {
             const status = filterDto.status;
             query.leftJoinAndSelect('category.markets', 'market', 'market.status = :status', {status});
         } else { query.leftJoinAndSelect('category.markets', 'market'); }
-
-        query.take(15);
-        query.skip(15 * (page - 1));
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
         query.orderBy('category.name', 'ASC');
-
         try {
             const categories = await query.getMany();
             return categories;

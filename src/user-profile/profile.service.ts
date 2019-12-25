@@ -52,18 +52,22 @@ export class ProfileService {
     private async processTags(tags: string[]): Promise<Tag[]> {
         const newTags: Tag[] = [];
         let assureArray = [];
-        if ( !Array.isArray(tags) ) {
-            assureArray.push(tags);
-        } else {
-            assureArray = [...tags];
-        }
-        const uploadPromises = assureArray.map(async (tag, index: number) => {
-            const foundTag = await this.tagRepository.tagsById(tag);
-            if (foundTag) {
-                newTags.push(foundTag);
+        if (tags) {
+            if ( !Array.isArray(tags) ) {
+                assureArray.push(tags);
+            } else {
+                assureArray = [...tags];
             }
-        });
-        await Promise.all(uploadPromises);
+        }
+        if (assureArray.length) {
+            const uploadPromises = assureArray.map(async (tag, index: number) => {
+                const foundTag = await this.tagRepository.tagsById(tag);
+                if (foundTag) {
+                    newTags.push(foundTag);
+                }
+            });
+            await Promise.all(uploadPromises);
+        }
         return newTags;
     }
 
@@ -77,19 +81,23 @@ export class ProfileService {
     private async processMarkets(markets: string[]): Promise<Market[]> {
         const newMarkets: Market[] = [];
         let assureArray = [];
-        if ( !Array.isArray(markets) ) {
-            assureArray.push(markets);
-        } else {
-            assureArray = [...markets];
-        }
-        const uploadPromises = assureArray.map(async (market, index: number) => {
-            // formerly find one by name; changed on 11/24
-            const foundMarket = await this.marketRepository.findOne({id: market});
-            if (foundMarket) {
-                newMarkets.push(foundMarket);
+        if (markets) {
+            if ( !Array.isArray(markets) ) {
+                assureArray.push(markets);
+            } else {
+                assureArray = [...markets];
             }
-        });
-        await Promise.all(uploadPromises);
+        }
+        if (assureArray.length) {
+            const uploadPromises = assureArray.map(async (market, index: number) => {
+                // formerly find one by name; changed on 11/24
+                const foundMarket = await this.marketRepository.findOne({id: market});
+                if (foundMarket) {
+                    newMarkets.push(foundMarket);
+                }
+            });
+            await Promise.all(uploadPromises);
+        }
         return newMarkets;
     }
 
@@ -103,19 +111,23 @@ export class ProfileService {
     private async processExchanges(exchanges: string[]): Promise<Exchange[]> {
         const newExchanges: Exchange[] = [];
         let assureArray = [];
-        if ( !Array.isArray(exchanges) ) {
-            assureArray.push(exchanges);
-        } else {
-            assureArray = [...exchanges];
-        }
-        const uploadPromises = assureArray.map(async (exchange, index: number) => {
-            // formerly find one by name; changed on 11/24
-            const foundExchange = await this.exchangeRepository.findOne({id: exchange});
-            if (foundExchange) {
-                newExchanges.push(foundExchange);
+        if (exchanges) {
+            if ( !Array.isArray(exchanges) ) {
+                assureArray.push(exchanges);
+            } else {
+                assureArray = [...exchanges];
             }
-        });
-        await Promise.all(uploadPromises);
+        }
+        if (assureArray.length) {
+            const uploadPromises = assureArray.map(async (exchange, index: number) => {
+                // formerly find one by name; changed on 11/24
+                const foundExchange = await this.exchangeRepository.findOne({id: exchange});
+                if (foundExchange) {
+                    newExchanges.push(foundExchange);
+                }
+            });
+            await Promise.all(uploadPromises);
+        }
         return newExchanges;
     }
 }

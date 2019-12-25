@@ -23,6 +23,12 @@ export class AuthController {
         return this.authService.signInWithName(authCredentialsDto);
     }
 
+    @Post('/refresh')
+    @UseGuards(AuthGuard())
+    refreshToken(@GetUser() user: UserEntity): Promise<{accessToken: string}> {
+        return this.authService.refreshToken(user);
+    }
+
     @Post('/test')
     @UseGuards(AuthGuard())
     test(@GetUser() user: UserEntity) {

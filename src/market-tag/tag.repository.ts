@@ -2,13 +2,28 @@ import { Repository, EntityRepository } from 'typeorm';
 import { Tag } from './tag.entity';
 import { Logger, NotAcceptableException, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
+import { CreateTagDto } from './dto/create-tag-dto';
 
 @EntityRepository(Tag)
 export class TagRepository extends Repository<Tag> {
     private logger = new Logger('TagRepository');
 
-    async allTags(): Promise<Tag[]> {
-        return await this.find();
+    async allTags(page: number = 1): Promise<Tag[]> {
+        if (page > 0) {
+            return await this.find({
+                order: {
+                    name: 'ASC',
+                },
+                take: 50,
+                skip: 50 * (page - 1),
+            });
+        } else {
+            return await this.find({
+                order: {
+                    name: 'ASC',
+                },
+            });
+        }
     }
 
     async allMarkets(): Promise<Tag[]> {
@@ -63,16 +78,20 @@ export class TagRepository extends Repository<Tag> {
         query.andWhere('tag.id = :id', { id });
         try {
             const found = await query.getOne();
-            return found;
+            if (found) {
+                return found;
+            } else {
+                throw new NotFoundException(`Tag with ID ${id} not found`);
+            }
         } catch (error) {
            // this.logger.error(`Invalid Tag Supplied`, error.stack);
             throw new NotAcceptableException('Invalid Tag Supplied');
         }
     }
 
-    async createTag(name: string, categoryId: string): Promise<Tag> {
+    async createTag(createTagDto: CreateTagDto, categoryId: string): Promise<Tag> {
         const tag = new Tag();
-        tag.name = name.replace(/,/g, ' ');
+        tag.name = createTagDto.name.replace(/,/g, ' ');
         tag.categoryId = categoryId;
         tag.status = ListingStatus.TO_REVIEW;
         try {
@@ -83,7 +102,7 @@ export class TagRepository extends Repository<Tag> {
                 this.logger.error(`Failed to create a Tag`, error.stack);
                 throw new ConflictException('Name for Tag already exists');
             } else {
-                this.logger.error(`Failed to create a market`, error.stack);
+                this.logger.error(`Failed to create a tag`, error.stack);
                 throw new InternalServerErrorException();
             }
         }
