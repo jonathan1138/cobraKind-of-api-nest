@@ -42,6 +42,10 @@ export class UserService {
     return this.userRepository.getUserById( id );
   }
 
+  async getUserByIdWCreations(id: string): Promise<UserEntity> {
+    return this.userRepository.getUserByIdWCreations( id );
+  }
+
   async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity, page: number = 1): Promise<UserEntity[]> {
     return this.userRepository.getAllUsers(filterDto, user, page);
   }

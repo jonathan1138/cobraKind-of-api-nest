@@ -17,6 +17,8 @@ import { SubVariationRepository } from 'src/exchange-sub-variation/sub-variation
 import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from '../user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { ProfileService } from 'src/user-profile/profile.service';
 
 @Injectable()
 export class ExchangeService {
@@ -35,6 +37,7 @@ export class ExchangeService {
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
         private readonly fileReaderService: FileReaderService,
+        private readonly profileService: ProfileService,
     ) {}
 
     getExchanges(filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
@@ -92,7 +95,7 @@ export class ExchangeService {
         return await this.exchangeRepository.getSubItemsByExchangeId(filterDto, exchangeId);
      }
 
-    async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, images?: object[]): Promise<Exchange> {
+    async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, userId: string, images?: object[]): Promise<Exchange> {
         const market = await this.marketRepository.getMarketById(marketId);
         const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
@@ -114,7 +117,9 @@ export class ExchangeService {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER);
                 createExchangeDto.images = s3ImageArray;
             }
-            return this.exchangeRepository.createExchange(createExchangeDto, market, processedGenres, processedSubVars);
+            const created = await this.exchangeRepository.createExchange(createExchangeDto, market, processedGenres, processedSubVars);
+            this.profileService.updateCreatedExchanges(userId, created);
+            return created;
         } else {
             throw new ConflictException('Exchange already exists');
         }
@@ -127,11 +132,28 @@ export class ExchangeService {
         }
     }
 
-    async updateExchangeStatus(id: string, status: ListingStatus ): Promise<Exchange> {
-        const market = await this.exchangeRepository.getExchangeById(id);
-        market.status = status;
-        await market.save();
-        return market;
+    async updateExchangeStatus(id: string, status: ListingStatus, statusNote: string ): Promise<Exchange> {
+        const exchange = await this.exchangeRepository.getExchangeById(id);
+        exchange.status = status;
+        if (!statusNote) {
+            switch (exchange.status) {
+                case ListingStatus.TO_REVIEW:
+                  exchange.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  exchange.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  exchange.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  exchange.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            exchange.statusNote = statusNote;
+        }
+        await exchange.save();
+        return exchange;
     }
 
     async updateExchangeGenres(id: string, genres: Genre[] ): Promise<Exchange> {

@@ -12,6 +12,7 @@ import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
 import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 
 @Injectable()
 export class SubItemService {
@@ -80,9 +81,27 @@ export class SubItemService {
         }
     }
 
-    async updateSubItemStatus(id: string, status: ListingStatus ): Promise<SubItem> {
+    async updateSubItemStatus(id: string, status: ListingStatus, statusNote: string ): Promise<SubItem> {
         const subItem = await this.subItemRepository.getSubItemById(id);
         subItem.status = status;
+        subItem.status = status;
+        if (!statusNote) {
+            switch (subItem.status) {
+                case ListingStatus.TO_REVIEW:
+                  subItem.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  subItem.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  subItem.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  subItem.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            subItem.statusNote = statusNote;
+        }
         await subItem.save();
         return subItem;
     }

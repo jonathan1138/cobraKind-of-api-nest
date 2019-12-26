@@ -49,6 +49,33 @@ export class ProfileService {
         this.profileRepository.save(profile);
     }
 
+    async updateCreatedTags(id: string, tag: Tag ): Promise<void> {
+        const user = await this.userRepository.getUserByIdWCreations(id);
+        const profile = await this.profileRepository.findOne(user.profile.id, {relations: ['createdTags']});
+        if ( user.name.localeCompare('admin') !== 0 ) {
+            profile.createdTags.push(tag);
+        }
+        this.profileRepository.save(profile);
+    }
+
+    async updateCreatedMarkets(id: string, market: Market ): Promise<void> {
+        const user = await this.userRepository.getUserByIdWCreations(id);
+        const profile = await this.profileRepository.findOne(user.profile.id, {relations: ['createdMarkets']});
+        if ( user.name.localeCompare('admin') !== 0 ) {
+            profile.createdMarkets.push(market);
+        }
+        this.profileRepository.save(profile);
+    }
+
+    async updateCreatedExchanges(id: string, exchange: Exchange ): Promise<void> {
+        const user = await this.userRepository.getUserByIdWCreations(id);
+        const profile = await this.profileRepository.findOne(user.profile.id, {relations: ['createdExchanges']});
+        if ( user.name.localeCompare('admin') !== 0 ) {
+            profile.createdExchanges.push(exchange);
+        }
+        this.profileRepository.save(profile);
+    }
+
     private async processTags(tags: string[]): Promise<Tag[]> {
         const newTags: Tag[] = [];
         let assureArray = [];

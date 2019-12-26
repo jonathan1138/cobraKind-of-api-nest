@@ -16,6 +16,9 @@ export class Tag extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @ManyToMany(() => Market, (market: Market) => market.tags)
     @JoinTable()
     public markets: Market[];

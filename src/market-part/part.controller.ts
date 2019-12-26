@@ -52,11 +52,12 @@ export class PartController {
     }
 
     @Patch('/status/:id')
-    updatemarketStatus(
+    updatePartStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<Part> {
-            return this.partService.updatePartStatus(id, status);
+            return this.partService.updatePartStatus(id, status, statusNote);
     }
 
     @Post('/images/:id')
@@ -66,7 +67,7 @@ export class PartController {
     }
 
     @Delete('/images/:id')
-    deleteCategoryImages(
+    deletePartImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.partService.deletePartImages(id);
     }

@@ -33,6 +33,6 @@ export class PriceRatingInfo {
     @Column({default: 0})
     totalRatings: number;
 
-    @OneToOne(type => Exchange, exchange => exchange.priceRatingInfo)
+    @OneToOne(() => Exchange, exchange => exchange.priceRatingInfo)
     exchange: Exchange;
 }

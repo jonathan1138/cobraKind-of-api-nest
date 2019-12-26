@@ -77,9 +77,10 @@ export class MarketController {
         @Param('categoryid', new ParseUUIDPipe()) categoryId: string,
         @UploadedFiles() images: any,
         @Body() createMarketDto: CreateMarketDto,
+        @GetUser() user: UserEntity,
         ): Promise<Market> {
         createMarketDto.images = images;
-        return this.marketService.createMarket(createMarketDto, categoryId, images);
+        return this.marketService.createMarket(createMarketDto, categoryId, user.id, images);
     }
 
     @Delete('/:id')
@@ -92,8 +93,9 @@ export class MarketController {
     updatemarketStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<Market> {
-            return this.marketService.updateMarketStatus(id, status);
+            return this.marketService.updateMarketStatus(id, status, statusNote);
     }
 
     @Patch('/tag/:id')

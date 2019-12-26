@@ -36,7 +36,7 @@ export class UserEntity extends BaseEntity {
     @Column({default: false})
     profileCreated: boolean;
 
-    @OneToOne(type => Profile, { // profile => profile.user,
+    @OneToOne(() => Profile, { // profile => profile.user,
         // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
         // eager: true,
         cascade: ['insert', 'update' ],
@@ -44,7 +44,7 @@ export class UserEntity extends BaseEntity {
     @JoinColumn()
     profile: Profile;
 
-    @OneToOne(type => UserRole, { // role => role.user,
+    @OneToOne(() => UserRole, { // role => role.user,
        // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
        // eager: true,
        cascade: ['insert', 'update' ],
@@ -56,10 +56,10 @@ export class UserEntity extends BaseEntity {
         return await bcrypt.compare(password, this.password);
     }
 
-    @OneToMany(type => PostEntity, postEntity => postEntity.owner, { cascade: true, eager: true })
+    @OneToMany(() => PostEntity, postEntity => postEntity.owner, { cascade: true, eager: true })
     posts: PostEntity[];
 
-    @OneToMany(type => ListingRating, (listingRating) => listingRating.user)
+    @OneToMany(() => ListingRating, (listingRating) => listingRating.user)
     listingRatings!: ListingRating[];
 
     toResponseObject(showToken: boolean = true): UserRO {

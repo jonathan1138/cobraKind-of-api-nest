@@ -9,6 +9,7 @@ import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Part } from './part.entity';
 import { CreatePartDto } from './dto/create-part.dto';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 
 @Injectable()
 export class PartService {
@@ -55,11 +56,28 @@ export class PartService {
         }
     }
 
-    async updatePartStatus(id: string, status: ListingStatus ): Promise<Part> {
-        const market = await this.partRepository.getPartById(id);
-        market.status = status;
-        await market.save();
-        return market;
+    async updatePartStatus(id: string, status: ListingStatus, statusNote: string ): Promise<Part> {
+        const part = await this.partRepository.getPartById(id);
+        part.status = status;
+        if (!statusNote) {
+            switch (part.status) {
+                case ListingStatus.TO_REVIEW:
+                  part.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  part.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  part.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  part.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            part.statusNote = statusNote;
+        }
+        await part.save();
+        return part;
     }
 
     async uploadPartImage(id: string, image: any): Promise<void> {

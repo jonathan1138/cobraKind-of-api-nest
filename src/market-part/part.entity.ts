@@ -19,6 +19,9 @@ export class Part extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
@@ -34,6 +37,6 @@ export class Part extends BaseEntity {
     @Column({ default: 0 })
     views: number;
 
-    @ManyToOne(type => Market, market => market.parts, { eager: false } )
+    @ManyToOne(() => Market, market => market.parts, { eager: false } )
     market: Market;
 }

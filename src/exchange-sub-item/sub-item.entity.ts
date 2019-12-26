@@ -25,6 +25,9 @@ export class SubItem extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
@@ -43,17 +46,17 @@ export class SubItem extends BaseEntity {
     @Column({ default: 0 })
     likes: number;
 
-    @ManyToOne(type => Exchange, exchange => exchange.subItems, { eager: false } )
+    @ManyToOne(() => Exchange, exchange => exchange.subItems, { eager: false } )
     exchange: Exchange;
 
-    @OneToMany(type => PostEntity, post => post.subItem, { eager: true })
+    @OneToMany(() => PostEntity, post => post.subItem, { eager: true })
     posts: PostEntity[];
 
-    @ManyToMany(type => UserIp, { cascade: true })
+    @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpSubItems: UserIp[];
 
-    @OneToOne(type => PriceRatingInfo, { // profile => profile.user,
+    @OneToOne(() => PriceRatingInfo, { // profile => profile.user,
         // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
         // eager: true,
         cascade: ['insert', 'update' ],

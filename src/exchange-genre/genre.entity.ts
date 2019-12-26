@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Exchange } from 'src/exchange/exchange.entity';
+import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 
 @Entity()
 export class Genre {
@@ -11,6 +12,12 @@ export class Genre {
 
     @Column('uuid')
     marketId: string;
+
+    @Column({ type: 'enum', enum: ListingStatus })
+    status: ListingStatus;
+
+    @Column({nullable: true})
+    statusNote: string;
 
     @ManyToMany(() => Exchange, (exchange: Exchange) => exchange.genres)
     @JoinTable()

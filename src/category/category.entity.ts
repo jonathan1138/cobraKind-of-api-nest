@@ -17,9 +17,12 @@ export class Category extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
-    @OneToMany(type => Market, market => market.category, { eager: true })
+    @OneToMany(() => Market, market => market.category, { eager: true })
     markets: Market[];
 }

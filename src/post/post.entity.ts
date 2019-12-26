@@ -57,19 +57,19 @@ export class PostEntity extends BaseEntity {
       this.updated = new Date;
     }
 
-    @ManyToOne(type => UserEntity, owner => owner.posts)
+    @ManyToOne(() => UserEntity, owner => owner.posts)
     owner: UserEntity;
 
-    @ManyToOne(type => Exchange, exchange => exchange.posts, { eager: false } )
+    @ManyToOne(() => Exchange, exchange => exchange.posts, { eager: false } )
     exchange: Exchange;
 
-    @ManyToOne(type => Market, market => market.posts, { eager: false } )
+    @ManyToOne(() => Market, market => market.posts, { eager: false } )
     market: Market;
 
-    @ManyToOne(type => SubItem, subItem => subItem.posts, { eager: false } )
+    @ManyToOne(() => SubItem, subItem => subItem.posts, { eager: false } )
     subItem: SubItem;
 
-    @ManyToMany(type => UserIp, { cascade: true })
+    @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpPosts: UserIp[];
 }

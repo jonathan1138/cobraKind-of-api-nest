@@ -10,6 +10,7 @@ import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 
 @Controller('category')
 // @UseGuards(AuthGuard())
@@ -67,8 +68,9 @@ export class CategoryController {
     updatecategoryStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<Category> {
-            return this.categoryService.updateCategoryStatus(id, status);
+            return this.categoryService.updateCategoryStatus(id, status, statusNote);
     }
 
     @Patch('/update/:id')

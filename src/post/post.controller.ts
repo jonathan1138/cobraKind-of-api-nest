@@ -65,7 +65,7 @@ export class PostController {
 
     @Patch('/status/:id')
     @UseGuards(AuthGuard())
-    updateexchangeStatus(
+    updatePostStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
         ): Promise<PostEntity> {
@@ -80,7 +80,6 @@ export class PostController {
     }
 
     @Post('/watch/:id')
-    @UseGuards(AuthGuard())
     @UseGuards(AuthGuard())
     watch(@Param('id') id: string, @GetUser() user: UserEntity) {
       return this.postService.watchPost(id, user.id);

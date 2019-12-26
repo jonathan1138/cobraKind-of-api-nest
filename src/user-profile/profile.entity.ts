@@ -5,6 +5,8 @@ import { Tag } from 'src/market-tag/tag.entity';
 import { PostEntity } from 'src/post/post.entity';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { SubItem } from '../exchange-sub-item/sub-item.entity';
+import { SubMod } from '../exchange-sub-mod/sub-mod.entity';
+import { Part } from '../market-part/part.entity';
 
 @Entity()
 export class Profile {
@@ -20,26 +22,58 @@ export class Profile {
   @Column({nullable: true})
   profilePhoto: string;
 
-  @ManyToMany(type => Tag)
+  @ManyToMany(() => Tag)
   @JoinTable()
   public watchedTags: Tag[];
 
-  @ManyToMany(type => Market)
+  @ManyToMany(() => Market)
   @JoinTable()
   public watchedMarkets: Market[];
 
-  @ManyToMany(type => Exchange)
+  @ManyToMany(() => Part)
+  @JoinTable()
+  public watchedParts: Part[];
+
+  @ManyToMany(() => Exchange)
   @JoinTable()
   public watchedExchanges: Exchange[];
 
-  @ManyToMany(type => SubItem)
+  @ManyToMany(() => SubItem)
   @JoinTable()
   public watchedSubItems: SubItem[];
 
-  @ManyToMany(type => PostEntity, { cascade: true })
+  @ManyToMany(() => SubMod)
+  @JoinTable()
+  public watchedSubMods: SubMod[];
+
+  @ManyToMany(() => PostEntity, { cascade: true })
   @JoinTable()
   watchedPosts: PostEntity[];
 
-  @OneToOne(type => UserEntity, user => user.profile)
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  public createdTags: Tag[];
+
+  @ManyToMany(() => Market)
+  @JoinTable()
+  public createdMarkets: Market[];
+
+  @ManyToMany(() => Part)
+  @JoinTable()
+  public createdParts: Part[];
+
+  @ManyToMany(() => Exchange)
+  @JoinTable()
+  public createdExchanges: Exchange[];
+
+  @ManyToMany(() => SubItem)
+  @JoinTable()
+  public createdSubItems: SubItem[];
+
+  @ManyToMany(() => SubMod)
+  @JoinTable()
+  public createdSubMods: SubMod[];
+
+  @OneToOne(() => UserEntity, user => user.profile)
   user: UserEntity;
 }

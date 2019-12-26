@@ -77,8 +77,10 @@ export class UserRepository extends Repository<UserEntity> {
         query.leftJoinAndSelect('profile.watchedExchanges', 'exchange');
         query.leftJoinAndSelect('user_entity.listingRatings', 'listingRating');
         query.leftJoinAndSelect('user_entity.posts', 'posts');
-        query.take(15);
-        query.skip(15 * (page - 1));
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
         query.orderBy('user_entity.name', 'ASC');
         try {
             const users = await query.getMany();
@@ -99,6 +101,15 @@ export class UserRepository extends Repository<UserEntity> {
     async getUserById(id: string): Promise<UserEntity> {
         const found = await this.findOne(id, { relations: ['listingRatings',
             'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges'] });
+        if (!found) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+        return found;
+    }
+
+    async getUserByIdWCreations(id: string): Promise<UserEntity> {
+        const found = await this.findOne(id, { relations: ['listingRatings',
+            'profile', 'profile.createdTags', 'profile.createdMarkets', 'profile.createdExchanges'] });
         if (!found) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }

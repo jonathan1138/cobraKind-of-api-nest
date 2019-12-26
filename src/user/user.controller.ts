@@ -25,6 +25,13 @@ export class UserController {
         return this.usersService.getAllUsers(filterDto, user, page);
     }
 
+    @Get('/creations/:id')
+    @UseInterceptors(ClassSerializerInterceptor)
+    getUserByIdWCreations(
+        @Param('id', new ParseUUIDPipe()) id: string): Promise<UserEntity> {
+        return this.usersService.getUserByIdWCreations(id);
+    }
+
     @Get('/:id')
     @UseInterceptors(ClassSerializerInterceptor)
     getUserById(

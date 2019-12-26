@@ -5,6 +5,8 @@ import { Tag } from './tag.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { CategoryRepository } from 'src/category/category.repository';
 import { CreateTagDto } from './dto/create-tag-dto';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { ProfileService } from 'src/user-profile/profile.service';
 
 @Injectable()
 export class TagService {
@@ -13,6 +15,7 @@ export class TagService {
         private tagRepository: TagRepository,
         @InjectRepository(CategoryRepository)
         private categoryRepository: CategoryRepository,
+        private readonly profileService: ProfileService,
     ) {}
 
     async allTags(page: number = 1): Promise<Tag[]> {
@@ -43,9 +46,26 @@ export class TagService {
         return this.tagRepository.tagsForMarket(id);
     }
 
-    async updateTagStatus(id: string, status: ListingStatus ): Promise<Tag> {
+    async updateTagStatus(id: string, status: ListingStatus, statusNote: string ): Promise<Tag> {
         const tag = await this.tagRepository.tagsById(id);
         tag.status = status;
+        if (!statusNote) {
+            switch (tag.status) {
+                case ListingStatus.TO_REVIEW:
+                  tag.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  tag.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  tag.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  tag.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            tag.statusNote = statusNote;
+        }
         await tag.save();
         return tag;
     }
@@ -64,10 +84,12 @@ export class TagService {
         }
     }
 
-    async createTag(createTagDto: CreateTagDto, categoryId: string): Promise<Tag> {
+    async createTag(createTagDto: CreateTagDto, categoryId: string, userId: string): Promise<Tag> {
         const category = await this.categoryRepository.getCategoryById(categoryId);
         if ( category ) {
-            return this.tagRepository.createTag(createTagDto, categoryId);
+            const created = await this.tagRepository.createTag(createTagDto, categoryId);
+            this.profileService.updateCreatedTags(userId, created);
+            return created;
         } else {
             throw new NotFoundException('Cannot find category');
         }

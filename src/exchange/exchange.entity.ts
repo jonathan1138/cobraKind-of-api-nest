@@ -29,6 +29,9 @@ export class Exchange extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
@@ -47,10 +50,10 @@ export class Exchange extends BaseEntity {
     @Column({ default: 0 })
     likes: number;
 
-    @OneToMany(type => PostEntity, post => post.exchange, { eager: true })
+    @OneToMany(() => PostEntity, post => post.exchange, { eager: true })
     posts: PostEntity[];
 
-    @ManyToOne(type => Market, market => market.exchanges, { eager: false } )
+    @ManyToOne(() => Market, market => market.exchanges, { eager: false } )
     market: Market;
 
     @ManyToMany(() => Genre, (genre: Genre) => genre.exchanges, {
@@ -65,20 +68,20 @@ export class Exchange extends BaseEntity {
     })
     public subVariations: SubVariation[];
 
-    @OneToMany(type => SubItem, subItem => subItem.exchange, { eager: false })
+    @OneToMany(() => SubItem, subItem => subItem.exchange, { eager: false })
     subItems: SubItem[];
 
-    @OneToMany(type => SubMod, subMod => subMod.exchange, { eager: false })
+    @OneToMany(() => SubMod, subMod => subMod.exchange, { eager: false })
     subMods: SubMod[];
 
-    @ManyToMany(type => UserIp, { cascade: true })
+    @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpExchanges: UserIp[];
 
     @OneToMany((type) => ListingRating, (listingRating) => listingRating.exchange)
     public listingRatings!: ListingRating[];
 
-    @OneToOne(type => PriceRatingInfo, { // profile => profile.user,
+    @OneToOne(() => PriceRatingInfo, { // profile => profile.user,
       // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
       // eager: true,
       cascade: ['insert', 'update' ],

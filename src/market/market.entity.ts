@@ -24,6 +24,9 @@ export class Market extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
@@ -33,7 +36,7 @@ export class Market extends BaseEntity {
     @Column({ default: 0 })
     views: number;
 
-    @ManyToOne(type => Category, category => category.markets, { eager: false } )
+    @ManyToOne(() => Category, category => category.markets, { eager: false } )
     category: Category;
 
     @Column('uuid')
@@ -44,13 +47,13 @@ export class Market extends BaseEntity {
       })
     public tags: Tag[];
 
-    @OneToMany(type => Exchange, exchange => exchange.market, { eager: false })
+    @OneToMany(() => Exchange, exchange => exchange.market, { eager: false })
     exchanges: Exchange[];
 
-    @OneToMany(type => Part, part => part.market, { eager: false })
+    @OneToMany(() => Part, part => part.market, { eager: false })
     parts: Part[];
 
-    @OneToOne(type => MarketShape, { // profile => profile.user,
+    @OneToOne(() => MarketShape, { // profile => profile.user,
         // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
         // eager: true,
         cascade: ['insert', 'update' ],
@@ -58,10 +61,10 @@ export class Market extends BaseEntity {
     @JoinColumn()
     marketShape: MarketShape;
 
-    @ManyToMany(type => UserIp, { cascade: true })
+    @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpMarkets: UserIp[];
 
-    @OneToMany(type => PostEntity, post => post.market, { eager: true })
+    @OneToMany(() => PostEntity, post => post.market, { eager: true })
     posts: PostEntity[];
 }

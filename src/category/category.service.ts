@@ -9,6 +9,8 @@ import { ImgFolder } from '../shared/enums/upload-img-folder.enum';
 import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
 import { FileReaderService } from '../shared/services/csvFileReaders/fileReader.service';
 import { create } from 'domain';
+import { ListingStatusNote } from '../shared/enums/listing-status-note.enum';
+import { stat } from 'fs';
 
 @Injectable()
 export class CategoryService {
@@ -63,9 +65,26 @@ export class CategoryService {
         }
     }
 
-    async updateCategoryStatus(id: string, status: ListingStatus ): Promise<Category> {
+    async updateCategoryStatus(id: string, status: ListingStatus, statusNote?: string ): Promise<Category> {
         const category = await this.categoryRepository.getCategoryById(id);
         category.status = status;
+        if (!statusNote) {
+            switch (category.status) {
+                case ListingStatus.TO_REVIEW:
+                  category.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  category.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  category.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  category.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            category.statusNote = statusNote;
+        }
         await category.save();
         return category;
     }

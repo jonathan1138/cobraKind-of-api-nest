@@ -29,13 +29,13 @@ export class ListingRating extends BaseEntity {
     @Column({ default: 0 })
     likes: number;
 
-    @ManyToOne(type => Exchange, exchange => exchange.listingRatings, { eager: false })
+    @ManyToOne(() => Exchange, exchange => exchange.listingRatings, { eager: false })
     public exchange!: Exchange;
 
-    @ManyToOne(type => UserEntity, user => user.listingRatings, { eager: false })
+    @ManyToOne(() => UserEntity, user => user.listingRatings, { eager: false })
     public user!: UserEntity;
 
-    @ManyToMany(type => UserEntity, { cascade: true })
+    @ManyToMany(() => UserEntity, { cascade: true })
     @JoinTable()
     commentLikes: UserEntity[];
 }

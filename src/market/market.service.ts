@@ -16,6 +16,8 @@ import { UserRepository } from 'src/user/user.repository';
 import { Profile } from '../user-profile/profile.entity';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { ProfileService } from 'src/user-profile/profile.service';
 
 @Injectable()
 export class MarketService {
@@ -32,6 +34,7 @@ export class MarketService {
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
         private readonly fileReaderService: FileReaderService,
+        private readonly profileService: ProfileService,
     ) {}
 
     getMarkets(filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
@@ -85,7 +88,7 @@ export class MarketService {
         return this.marketRepository.getTagsByCatId(id, filterDto);
     }
 
-    async createMarket(createMarketDto: CreateMarketDto, categoryId: string, images?: object[]): Promise<Market> {
+    async createMarket(createMarketDto: CreateMarketDto, categoryId: string, userId: string, images?: object[]): Promise<Market> {
         const category = await this.categoryRepository.getCategoryById(categoryId);
         const isMarketNameUnique = await this.marketRepository.isNameUnique(createMarketDto.name);
         const { tags } = createMarketDto;
@@ -97,7 +100,9 @@ export class MarketService {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.MARKET_IMG_FOLDER);
                 createMarketDto.images = s3ImageArray;
             }
-            return this.marketRepository.createMarket(createMarketDto, category, processedTags);
+            const created = await this.marketRepository.createMarket(createMarketDto, category, processedTags);
+            this.profileService.updateCreatedMarkets(userId, created);
+            return created;
         } else {
             throw new ConflictException('Market already exists');
         }
@@ -110,9 +115,26 @@ export class MarketService {
         }
     }
 
-    async updateMarketStatus(id: string, status: ListingStatus ): Promise<Market> {
+    async updateMarketStatus(id: string, status: ListingStatus, statusNote: string ): Promise<Market> {
         const market = await this.marketRepository.getMarketById(id);
         market.status = status;
+        if (!statusNote) {
+            switch (market.status) {
+                case ListingStatus.TO_REVIEW:
+                  market.statusNote = ListingStatusNote.TO_REVIEW;
+                  break;
+                case ListingStatus.APPROVED:
+                  market.statusNote = ListingStatusNote.APPROVED;
+                  break;
+                case ListingStatus.REJECTED:
+                  market.statusNote = ListingStatusNote.REJECTED;
+                  break;
+                default:
+                  market.statusNote = ListingStatusNote.TO_REVIEW;
+                }
+            } else {
+            market.statusNote = statusNote;
+        }
         await market.save();
         return market;
     }

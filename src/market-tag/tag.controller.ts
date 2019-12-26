@@ -5,6 +5,8 @@ import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-vali
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateTagDto } from './dto/create-tag-dto';
+import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 @Controller('tag')
 export class TagController {
@@ -55,8 +57,9 @@ constructor( private tagService: TagService ) {}
     updateTagStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<Tag> {
-            return this.tagService.updateTagStatus(id, status);
+            return this.tagService.updateTagStatus(id, status, statusNote);
     }
 
     @Patch('/update/:id')
@@ -73,8 +76,9 @@ constructor( private tagService: TagService ) {}
     createTag(
         @Param('categoryid', new ParseUUIDPipe()) categoryId: string,
         @Body() createTagDto: CreateTagDto,
+        @GetUser() user: UserEntity,
         ): Promise<Tag> {
-        return this.tagService.createTag(createTagDto, categoryId);
+        return this.tagService.createTag(createTagDto, categoryId, user.id);
     }
 
     @Delete('/:id')

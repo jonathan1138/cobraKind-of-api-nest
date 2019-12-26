@@ -89,9 +89,10 @@ export class ExchangeController {
         @Param('marketid', new ParseUUIDPipe()) marketId: string,
         @UploadedFiles() images: any,
         @Body() createExchangeDto: CreateExchangeDto,
+        @GetUser() user: UserEntity,
         ): Promise<Exchange> {
         createExchangeDto.images = images;
-        return this.exchangeService.createExchange(createExchangeDto, marketId, images);
+        return this.exchangeService.createExchange(createExchangeDto, marketId, user.id, images);
     }
 
     @Delete('/:id')
@@ -104,8 +105,9 @@ export class ExchangeController {
     updateExchangeStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<Exchange> {
-            return this.exchangeService.updateExchangeStatus(id, status);
+            return this.exchangeService.updateExchangeStatus(id, status, statusNote);
     }
 
     @Patch('/genre/:id')

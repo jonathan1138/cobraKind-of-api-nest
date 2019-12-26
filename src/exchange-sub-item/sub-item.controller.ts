@@ -61,8 +61,9 @@ export class SubItemController {
     updatesubItemStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<SubItem> {
-            return this.subItemService.updateSubItemStatus(id, status);
+            return this.subItemService.updateSubItemStatus(id, status, statusNote);
     }
 
     @Post('/images/:id')

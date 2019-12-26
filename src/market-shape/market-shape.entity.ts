@@ -28,6 +28,6 @@ export class MarketShape {
   @Column({nullable: true})
   subModConvention: string;
 
-  @OneToOne(type => Market, market => market.marketShape)
+  @OneToOne(() => Market, market => market.marketShape)
   market: Market;
 }

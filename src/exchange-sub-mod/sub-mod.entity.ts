@@ -20,6 +20,9 @@ export class SubMod extends BaseEntity {
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column('simple-array', { default: '' })
     images: string[];
 
@@ -35,6 +38,6 @@ export class SubMod extends BaseEntity {
     @Column({ default: 0 })
     views: number;
 
-    @ManyToOne(type => Exchange, exchange => exchange.subMods, { eager: false } )
+    @ManyToOne(() => Exchange, exchange => exchange.subMods, { eager: false } )
     exchange: Exchange;
 }

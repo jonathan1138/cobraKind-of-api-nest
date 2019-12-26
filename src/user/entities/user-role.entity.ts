@@ -15,6 +15,6 @@ export class UserRole {
     @UpdateDateColumn()
     updatedDate: Date;
 
-    // @OneToOne(type => UserEntity, user => user.role)
+    // @OneToOne(() => UserEntity, user => user.role)
     // user: UserEntity;
 }

@@ -48,6 +48,33 @@ export class ProfileController {
             return this.profileService.updateWatchedExchanges(id, exchanges);
     }
 
+    // @Patch('/tagsCreated/:id')
+    // @UseGuards(AuthGuard())
+    // updateUserCreatedTags(
+    //     @Param('id', new ParseUUIDPipe()) id: string,
+    //     @Body('tags') tags: string[],
+    //     ): Promise<void> {
+    //         return this.profileService.updateCreatedTags(id, tags);
+    // }
+
+    // @Patch('/marketsCreated/:id')
+    // @UseGuards(AuthGuard())
+    // updateUserCreatedMarkets(
+    //     @Param('id', new ParseUUIDPipe()) id: string,
+    //     @Body('markets') markets: string[],
+    //     ): Promise<void> {
+    //         return this.profileService.updateCreatedMarkets(id, markets);
+    // }
+
+    // @Patch('/exchangesCreated/:id')
+    // @UseGuards(AuthGuard())
+    // updateUserCreatedExchanges(
+    //     @Param('id', new ParseUUIDPipe()) id: string,
+    //     @Body('exchanges') exchanges: string[],
+    //     ): Promise<void> {
+    //         return this.profileService.updateCreatedExchanges(id, exchanges);
+    // }
+
     @Post('uploadPhoto/:id')
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('image'))

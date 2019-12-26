@@ -13,11 +13,14 @@ import { PartRepository } from 'src/market-part/part.repository';
 import { SubVariationRepository } from '../exchange-sub-variation/sub-variation.repository';
 import { UserRepository } from '../user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { ProfileService } from '../user-profile/profile.service';
+import { ProfileRepository } from '../user-profile/profile.repository';
+import { TagRepository } from 'src/market-tag/tag.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, ExchangeRepository, MarketRepository,
-    GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp]), AuthModule],
+    GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp, TagRepository, ProfileRepository]), AuthModule],
   controllers: [ExchangeController],
-  providers: [ExchangeService, S3UploadService, FileReaderService],
+  providers: [ExchangeService, S3UploadService, FileReaderService, ProfileService],
 })
 export class ExchangeModule {}
