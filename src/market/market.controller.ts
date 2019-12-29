@@ -21,15 +21,17 @@ export class MarketController {
 
     @Get()
     getMarkets(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         ): Promise<Market[]> {
-        return this.marketService.getMarkets(filterDto);
+        return this.marketService.getMarkets(filterDto, page);
     }
 
     @Get('/tag')
     getWithTags(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-            return this.marketService.getTags(filterDto);
+            return this.marketService.getTags(filterDto, page);
     }
 
     @Get('/:id')
@@ -40,38 +42,41 @@ export class MarketController {
 
     @Get('/category/:id')
     getMarketsByCategories(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         @Param('id', new ParseUUIDPipe()) categoryId: string): Promise<Market[]> {
-        return this.marketService.getMarketsByCategory(filterDto, categoryId);
+        return this.marketService.getMarketsByCategory(filterDto, categoryId, page);
     }
 
     @Get('/exchange/:id')
     getExchangesForMarket(
         @Param('id', new ParseUUIDPipe()) marketId: string): Promise<Market> {
-        return this.marketService.getExchangesForMarket(marketId);
+        return this.marketService.getExchangeForMarket(marketId);
     }
 
     @Get('/part/:id')
     getPartsForMarket(
         @Param('id', new ParseUUIDPipe()) marketId: string): Promise<Market> {
-        return this.marketService.getPartsForMarket(marketId);
+        return this.marketService.getPartForMarket(marketId);
     }
 
     @Get('/exchangeandparts/:id')
     getExchangeAndPartsForMarket(
         @Param('id', new ParseUUIDPipe()) marketId: string): Promise<Market> {
-        return this.marketService.getExchangesAndPartsForMarket(marketId);
+        return this.marketService.getExchangeAndPartForMarket(marketId);
     }
 
     @Get('/tag/:id')
     getMarketsWithTagsByCat(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         @Param('id', new ParseUUIDPipe()) id: string): Promise<Market[]> {
-            return this.marketService.getTagsByCatId(id, filterDto);
+            return this.marketService.getTagsByCatId(id, filterDto, page);
     }
 
     @Post('/:categoryid')
     @UsePipes(ValidationPipe)
+    @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('images'))
     createMarket(
         @Param('categoryid', new ParseUUIDPipe()) categoryId: string,
@@ -84,12 +89,14 @@ export class MarketController {
     }
 
     @Delete('/:id')
+    @UseGuards(AuthGuard())
     deleteMarket(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.marketService.deleteMarket(id);
     }
 
     @Patch('/status/:id')
+    @UseGuards(AuthGuard())
     updatemarketStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
@@ -99,6 +106,7 @@ export class MarketController {
     }
 
     @Patch('/tag/:id')
+    @UseGuards(AuthGuard())
     updateMarketTags(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('tags') tags: string[],
@@ -106,13 +114,24 @@ export class MarketController {
             return this.marketService.updateMarketTags(id, tags);
     }
 
+    @Patch('/update/:id')
+    @UseGuards(AuthGuard())
+    updatemarket(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() createMarketDto: CreateMarketDto,
+        ): Promise<void> {
+            return this.marketService.updateMarket(id, createMarketDto);
+    }
+
     @Post('/images/:id')
-    @UseInterceptors(FileInterceptor('image'))
-    uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.marketService.uploadMarketImage(id, image);
+    @UseGuards(AuthGuard())
+    @UseInterceptors(FilesInterceptor('image'))
+    uploadImage(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+        return this.marketService.uploadMarketImages(id, images);
     }
 
     @Post('/file/:dest')
+    @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file', multerOptions ))
         async upload(
         @Param('destination') destination: string,
@@ -123,6 +142,7 @@ export class MarketController {
     }
 
     @Post('/importfiletodb')
+    @UseGuards(AuthGuard())
     importfiletodb(
         @Body('filename') filename: string): Promise<void> {
         return this.marketService.loadMarketsFile(filename);
@@ -141,6 +161,7 @@ export class MarketController {
     }
 
     @Delete('/images/:id')
+    @UseGuards(AuthGuard())
     deleteCategoryImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.marketService.deleteMarketImages(id);

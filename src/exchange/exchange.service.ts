@@ -137,17 +137,17 @@ export class ExchangeService {
         exchange.status = status;
         if (!statusNote) {
             switch (exchange.status) {
-                case ListingStatus.TO_REVIEW:
-                  exchange.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  exchange.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   exchange.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   exchange.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   exchange.statusNote = ListingStatusNote.REJECTED;
                   break;
-                default:
-                  exchange.statusNote = ListingStatusNote.TO_REVIEW;
+                // default:
+                //   exchange.statusNote = ListingStatusNote.TO_REVIEW;
                 }
             } else {
             exchange.statusNote = statusNote;

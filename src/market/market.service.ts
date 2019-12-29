@@ -37,8 +37,8 @@ export class MarketService {
         private readonly profileService: ProfileService,
     ) {}
 
-    getMarkets(filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        return this.marketRepository.getMarkets(filterDto);
+    getMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        return this.marketRepository.getMarkets(filterDto, page);
     }
 
     async getMarketById(id: string): Promise<Market> {
@@ -64,28 +64,28 @@ export class MarketService {
         return market;
     }
 
-    async getMarketsByCategory(filterDto: StatusAndSearchFilterDto, categoryId: string): Promise<Market[]> {
-       return await this.marketRepository.getMarketsByCategory(filterDto, categoryId);
+    async getMarketsByCategory(filterDto: StatusAndSearchFilterDto, categoryId: string, page: number = 1): Promise<Market[]> {
+       return await this.marketRepository.getMarketsByCategory(filterDto, categoryId, page);
     }
 
-    async getExchangesForMarket(id: string): Promise<Market> {
-        return await this.marketRepository.getExchangesForMarket(id);
+    async getExchangeForMarket(id: string): Promise<Market> {
+        return await this.marketRepository.getExchangeForMarket(id);
     }
 
-    async getPartsForMarket(id: string): Promise<Market> {
-        return await this.marketRepository.getPartsForMarket(id);
+    async getPartForMarket(id: string, page: number = 1): Promise<Market> {
+        return await this.marketRepository.getPartForMarket(id);
     }
 
-    async getExchangesAndPartsForMarket(id: string): Promise<Market> {
-        return await this.marketRepository.getExchangesAndPartsForMarket(id);
+    async getExchangeAndPartForMarket(id: string, page: number = 1): Promise<Market> {
+        return await this.marketRepository.getExchangeAndPartForMarket(id);
     }
 
-    getTags(filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        return this.marketRepository.getTags(filterDto);
+    getTags(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        return this.marketRepository.getTags(filterDto, page);
     }
 
-    getTagsByCatId(id: string, filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        return this.marketRepository.getTagsByCatId(id, filterDto);
+    getTagsByCatId(id: string, filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        return this.marketRepository.getTagsByCatId(id, filterDto, page);
     }
 
     async createMarket(createMarketDto: CreateMarketDto, categoryId: string, userId: string, images?: object[]): Promise<Market> {
@@ -108,6 +108,14 @@ export class MarketService {
         }
     }
 
+    async updateMarket(id: string, createMarketDto: CreateMarketDto): Promise<void> {
+        if ( createMarketDto.name || createMarketDto.info ) {
+          return this.marketRepository.updateMarket(id, createMarketDto);
+        } else {
+          throw new NotAcceptableException(`Update details not provided`);
+        }
+    }
+
     async deleteMarket(id: string): Promise<void> {
         const result = await this.marketRepository.delete(id);
         if (result.affected === 0) {
@@ -120,17 +128,17 @@ export class MarketService {
         market.status = status;
         if (!statusNote) {
             switch (market.status) {
-                case ListingStatus.TO_REVIEW:
-                  market.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  market.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   market.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   market.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   market.statusNote = ListingStatusNote.REJECTED;
                   break;
-                default:
-                  market.statusNote = ListingStatusNote.TO_REVIEW;
+                // default:
+                //   market.statusNote = ListingStatusNote.TO_REVIEW;
                 }
             } else {
             market.statusNote = statusNote;
@@ -148,14 +156,15 @@ export class MarketService {
         return market;
     }
 
-    async uploadMarketImage(id: string, image: any): Promise<void> {
+    async uploadMarketImages(id: string, image: any): Promise<string[]> {
         if (image) {
             const market = await this.marketRepository.getMarketById(id);
-            if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.MARKET_IMG_FOLDER);
-                market.images.push(s3ImgUrl);
-                await market.save();
-            }
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.MARKET_IMG_FOLDER);
+            s3ImgUrlArray.forEach(item => {
+                market.images.push(item);
+            });
+            await market.save();
+            return market.images;
         } else {
             throw new NotAcceptableException(`File not found`);
         }

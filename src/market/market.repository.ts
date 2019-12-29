@@ -13,8 +13,8 @@ import { SubExchangeType } from '../shared/enums/sub-exchange-type.enum';
 export class MarketRepository extends Repository<Market> {
     private logger = new Logger('MarketRepository');
 
-    async getMarkets(filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        const query = this.buildQuery(filterDto);
+    async getMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        const query = this.buildQuery(filterDto, page);
         try {
             const markets = await query.getMany();
             return markets;
@@ -40,7 +40,7 @@ export class MarketRepository extends Repository<Market> {
         return found;
     }
 
-    async getExchangesForMarket(id: string): Promise<Market> {
+    async getExchangeForMarket(id: string): Promise<Market> {
         const found = await this.findOne(id, {relations: ['exchanges']});
         if (!found) {
             throw new NotFoundException('Market Not found');
@@ -48,7 +48,7 @@ export class MarketRepository extends Repository<Market> {
         return found;
     }
 
-    async getPartsForMarket(id: string): Promise<Market> {
+    async getPartForMarket(id: string): Promise<Market> {
         const found = await this.findOne(id, {relations: ['parts']});
         if (!found) {
             throw new NotFoundException('Market Not found');
@@ -56,7 +56,7 @@ export class MarketRepository extends Repository<Market> {
         return found;
     }
 
-    async getExchangesAndPartsForMarket(id: string): Promise<Market> {
+    async getExchangeAndPartForMarket(id: string): Promise<Market> {
         const found = await this.findOne(id, {relations: ['exchanges', 'parts']});
         if (!found) {
             throw new NotFoundException('Market Not found');
@@ -64,8 +64,8 @@ export class MarketRepository extends Repository<Market> {
         return found;
     }
 
-    async getTags(filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        const query = this.buildQuery(filterDto);
+    async getTags(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        const query = this.buildQuery(filterDto, page);
         query.leftJoinAndSelect('market.tags', 'tag');
         try {
             const markets = await query.getMany();
@@ -76,8 +76,8 @@ export class MarketRepository extends Repository<Market> {
         }
     }
 
-    async getTagsByCatId(id: string, filterDto: StatusAndSearchFilterDto): Promise<Market[]> {
-        const query = this.buildQuery(filterDto);
+    async getTagsByCatId(id: string, filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
+        const query = this.buildQuery(filterDto, page);
         query.andWhere('market.categoryId = :id', {id});
         try {
             const markets = await query.getMany();
@@ -88,7 +88,33 @@ export class MarketRepository extends Repository<Market> {
         }
     }
 
-    private buildQuery(filterDto: StatusAndSearchFilterDto) {
+    async getMarketsByCategory(filterDto: StatusAndSearchFilterDto, categoryId: string, page: number = 1): Promise<Market[]> {
+        const { status, search } = filterDto;
+        const query = this.createQueryBuilder('market');
+        query.leftJoinAndSelect('market.tags', 'tag');
+        query.andWhere('market.categoryId = :categoryId', { categoryId });
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        query.orderBy('market.name', 'ASC');
+
+        if (status) {
+            query.andWhere('market.status = :status', { status });
+        }
+
+        if (search) {
+            query.andWhere('(market.name LIKE :search OR market.info LIKE :search)', { search: `%${search}%` });
+        }
+
+        const markets = await query.getMany();
+        if (markets.length < 1) {
+            throw new NotFoundException('Category Not found');
+        }
+        return markets;
+    }
+
+    private buildQuery(filterDto: StatusAndSearchFilterDto, page: number) {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('market');
         query.leftJoinAndSelect('market.tags', 'tag');
@@ -98,6 +124,11 @@ export class MarketRepository extends Repository<Market> {
         if (search) {
             query.andWhere('(market.name LIKE :search OR market.info LIKE :search)', { search: `%${search}%` });
         }
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        query.orderBy('market.name', 'ASC');
         return query;
     }
 
@@ -131,6 +162,18 @@ export class MarketRepository extends Repository<Market> {
         }
     }
 
+    async updateMarket(id: string, createMarketDto: CreateMarketDto ): Promise<void> {
+        const market = await this.getMarketById(id);
+        const { name, info } = createMarketDto;
+        market.name = name;
+        market.info = info;
+        try {
+            await market.save();
+         } catch (error) {
+            throw new InternalServerErrorException('Failed to update Market. Check with administrator');
+        }
+    }
+
     async isNameUnique(name: string): Promise<boolean> {
         const query = this.createQueryBuilder('market').where('market.name = :name', { name });
         try {
@@ -144,27 +187,6 @@ export class MarketRepository extends Repository<Market> {
             this.logger.error(`Failed to get market requested`);
             return false;
         }
-    }
-
-    async getMarketsByCategory(filterDto: StatusAndSearchFilterDto, categoryId: string): Promise<Market[]> {
-        const { status, search } = filterDto;
-        const query = this.createQueryBuilder('market');
-        query.leftJoinAndSelect('market.tags', 'tag');
-        query.andWhere('market.categoryId = :categoryId', { categoryId });
-
-        if (status) {
-            query.andWhere('market.status = :status', { status });
-        }
-
-        if (search) {
-            query.andWhere('(market.name LIKE :search OR market.info LIKE :search)', { search: `%${search}%` });
-        }
-
-        const markets = await query.getMany();
-        if (markets.length < 1) {
-            throw new NotFoundException('Category Not found');
-        }
-        return markets;
     }
 
     async incrementView(id: string): Promise<void> {

@@ -10,12 +10,7 @@ export class CategoryRepository extends Repository<Category> {
     private logger = new Logger('CategoryRepository');
 
     async getCategories(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
-        const query = this.buildQuery(filterDto);
-        if (page > 0) {
-            query.take(15);
-            query.skip(15 * (page - 1));
-        }
-        query.orderBy('name', 'ASC');
+        const query = this.buildQuery(filterDto, page);
         try {
             const categories = await query.getMany();
             return categories;
@@ -26,7 +21,7 @@ export class CategoryRepository extends Repository<Category> {
     }
 
     async getCategoriesWithMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
-        const query = this.buildQuery(filterDto);
+        const query = this.buildQuery(filterDto, page);
         if (filterDto.status) {
             const status = filterDto.status;
             query.leftJoinAndSelect('category.markets', 'market', 'market.status = :status', {status});
@@ -66,7 +61,7 @@ export class CategoryRepository extends Repository<Category> {
         return category;
     }
 
-    private buildQuery(filterDto: StatusAndSearchFilterDto) {
+    private buildQuery(filterDto: StatusAndSearchFilterDto, page: number) {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('category');
         if (status) {
@@ -75,6 +70,11 @@ export class CategoryRepository extends Repository<Category> {
         if (search) {
             query.andWhere('(category.name LIKE :search OR category.info LIKE :search)', { search: `%${search}%` });
         }
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        query.orderBy('name', 'ASC');
         return query;
     }
 

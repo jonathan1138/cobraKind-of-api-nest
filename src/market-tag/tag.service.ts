@@ -51,17 +51,17 @@ export class TagService {
         tag.status = status;
         if (!statusNote) {
             switch (tag.status) {
-                case ListingStatus.TO_REVIEW:
-                  tag.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  tag.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   tag.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   tag.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   tag.statusNote = ListingStatusNote.REJECTED;
                   break;
-                default:
-                  tag.statusNote = ListingStatusNote.TO_REVIEW;
+                // default:
+                //   tag.statusNote = ListingStatusNote.TO_REVIEW;
                 }
             } else {
             tag.statusNote = statusNote;
