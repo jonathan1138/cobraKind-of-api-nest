@@ -2,7 +2,6 @@ import { Controller, Get, Post, UsePipes, UseInterceptors, ValidationPipe,
         ParseUUIDPipe, UploadedFiles, Param, Body, Delete, Query, Patch, UploadedFile, Logger, UseGuards } from '@nestjs/common';
 import { ExchangeService } from './exchange.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
 import { Exchange } from './exchange.entity';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
@@ -136,22 +135,6 @@ export class ExchangeController {
     deleteExchangeImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.exchangeService.deleteExchangeImages(id);
-    }
-
-    @Post('/file/:dest')
-    @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async upload(
-        @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
-        const filename = Object.values(file)[1];
-        this.importfiletodb('exchanges' + '/' + filename);
-    }
-
-    @Post('/importfiletodb')
-    importfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.exchangeService.loadExchangesFile(filename);
     }
 
     @Post('/watch/:id')

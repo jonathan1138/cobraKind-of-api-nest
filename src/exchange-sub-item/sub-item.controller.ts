@@ -6,7 +6,6 @@ import { SubItem } from './sub-item.entity';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
-import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
 import { CreateSubItemDto } from './dto/create-sub-item-dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
@@ -76,22 +75,6 @@ export class SubItemController {
     deleteCategoryImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.subItemService.deleteSubItemImages(id);
-    }
-
-    @Post('/file/:dest')
-    @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async upload(
-        @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
-        const filename = Object.values(file)[1];
-        this.importfiletodb('subItems' + '/' + filename);
-    }
-
-    @Post('/importfiletodb')
-    importfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.subItemService.loadSubItemsFile(filename);
     }
 
     @Post('/watch/:id')

@@ -3,8 +3,7 @@ import { MarketRepository } from 'src/market/market.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExchangeRepository } from './exchange.repository';
 import { GenreRepository } from 'src/exchange-genre/genre.repository';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
-import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { Exchange } from './exchange.entity';
 import { CreateExchangeDto } from './dto/create-exchange-dto';
@@ -36,7 +35,6 @@ export class ExchangeService {
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
-        private readonly fileReaderService: FileReaderService,
         private readonly profileService: ProfileService,
     ) {}
 
@@ -95,7 +93,8 @@ export class ExchangeService {
         return await this.exchangeRepository.getSubItemsByExchangeId(filterDto, exchangeId);
      }
 
-    async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, userId: string, images?: object[]): Promise<Exchange> {
+    async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, userId: string,
+                         images?: object[], filenameInPath?: boolean): Promise<Exchange> {
         const market = await this.marketRepository.getMarketById(marketId);
         const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
@@ -114,7 +113,7 @@ export class ExchangeService {
 
         if ( isExchangeNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER);
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
                 createExchangeDto.images = s3ImageArray;
             }
             const created = await this.exchangeRepository.createExchange(createExchangeDto, market, processedGenres, processedSubVars);
@@ -174,11 +173,11 @@ export class ExchangeService {
         return exchange;
     }
 
-    async uploadExchangeImage(id: string, image: any): Promise<void> {
+    async uploadExchangeImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
         if (image) {
             const market = await this.exchangeRepository.getExchangeById(id);
             if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER);
+                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
                 market.images.push(s3ImgUrl);
                 await market.save();
             }
@@ -194,11 +193,6 @@ export class ExchangeService {
         market.images = [];
         await market.save();
         return arrayImages;
-    }
-
-    async loadExchangesFile(filename: string): Promise<void> {
-        Logger.log('Work in progress');
-        this.fileReaderService.importExchangeFileToDb(filename);
     }
 
     async processGenres(mktId: Uuid, genres: Genre[], processType: string): Promise<Genre[]> {

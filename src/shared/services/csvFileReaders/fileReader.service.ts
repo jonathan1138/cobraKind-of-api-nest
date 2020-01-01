@@ -1,54 +1,134 @@
-import { Injectable, Logger, NotAcceptableException } from '@nestjs/common';
-import * as config from 'config';
+import { Injectable, Logger } from '@nestjs/common';
 import { CategoryFileReader } from './classes/categoryFileReader';
-import { FileSummary } from './classes/fileSummary';
 import { FileCategoryData } from './types/fileCategoryData';
-import { ExchangeResult } from 'src/shared/enums/exchange-data.enum';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryRepository } from 'src/category/category.repository';
-import { MarketRepository } from 'src/market/market.repository';
+import { CreateCategoryDto } from '../../../category/dto/create-category-dto';
+import { MarketFileReader } from './classes/marketFileReader';
+import { CategoryService } from 'src/category/category.service';
+import { MarketService } from 'src/market/market.service';
+import { CreateMarketDto } from 'src/market/dto/create-market-dto';
 import { FileMarketData } from './types/fileMarketData';
-import { GenreRepository } from 'src/exchange-genre/genre.repository';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
-import { FileExchangeData } from './types/fileExchangeData';
-import { FilePartData } from './types/filePartData';
-import { PartRepository } from 'src/market-part/part.repository';
-
+import { TagService } from '../../../market-tag/tag.service';
+import { TagFileReader } from './classes/tagFileReader';
+import { CreateTagDto } from 'src/market-tag/dto/create-tag-dto';
+import { FileTagData } from './types/fileTagData';
 @Injectable()
 export class FileReaderService {
     constructor(
-        @InjectRepository(CategoryRepository)
-        private categoryRepository: CategoryRepository,
-        @InjectRepository(MarketRepository)
-        private marketRepository: MarketRepository,
-        @InjectRepository(ExchangeRepository)
-        private exchangeRepository: ExchangeRepository,
-        @InjectRepository(GenreRepository)
-        private genreRepository: GenreRepository,
-        @InjectRepository(PartRepository)
-        private partRepository: PartRepository,
+        private categoryService: CategoryService,
+        private marketService: MarketService,
+        private tagService: TagService,
     ) {}
+    private logger = new Logger('FileReaderService');
+    private userId = '260a7b48-e60a-4d0a-ac26-0d7186215542';
 
     async importCategoryFileToDb(filename: string) {
         const categoryReader = CategoryFileReader.fromCsv(filename);
         if ( categoryReader.load() === true ) {
-            // const summary = FileSummary.winsAnalysisWithReport('Man United');
-            // summary.buildAndPrintReport(exchangeReader.fileData);
             const output = await this.processCategoryFileData(categoryReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
     }
 
+    async processCategoryFileData(categories: FileCategoryData[]): Promise<string> {
+        let recordSuccess = 0;
+        let recordFail = 0;
+        for (const item of categories) {
+            // process image array
+            let imageArray = [];
+            if (item[2].length) {
+                imageArray = item[2].split('|');
+            }
+            const category: CreateCategoryDto = {
+                    name: item[0],
+                    info: item[1],
+                    images: imageArray,
+                };
+            try {
+                    const result = await this.categoryService.createCategory(category);
+                    if (result) { recordSuccess++; }
+                } catch (error) {
+                    recordFail++;
+                    this.logger.error(`Failed to create a Category: `, error.stack);
+                    // throw new InternalServerErrorException();
+                }
+        }
+        const report = `Processed ${recordSuccess} records successfully / ${recordFail} failed`;
+        Logger.log(report);
+        return report;
+    }
+
     async importMarketFileToDb(filename: string) {
-        const marketReader = CategoryFileReader.fromCsv(filename);
+        const marketReader = MarketFileReader.fromCsv(filename);
         if ( marketReader.load() === true ) {
-            // const summary = FileSummary.winsAnalysisWithReport('Man United');
-            // summary.buildAndPrintReport(exchangeReader.fileData);
             const output = await this.processMarketFileData(marketReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
+    }
+
+    async processMarketFileData(markets: FileMarketData[]): Promise<string> {
+        let recordSuccess = 0;
+        let recordFail = 0;
+        for (const item of markets) {
+            // process image array
+            let imageArray = [];
+            if (item[2].length) {
+                imageArray = item[2].split('|');
+            }
+            let tagsArray = [];
+            if (item[3].length) {
+                tagsArray = item[3].split('|');
+            }
+            const market: CreateMarketDto = {
+                    name: item[0],
+                    info: item[1],
+                    images: imageArray,
+                    tags: tagsArray,
+                };
+            try {
+                    const result = await this.marketService.createMarket(market, item[4], this.userId);
+                    if (result) { recordSuccess++; }
+                } catch (error) {
+                    recordFail++;
+                    this.logger.error(`Failed to create a Market: `, error.stack);
+                    // throw new InternalServerErrorException();
+                }
+        }
+        const report = `Processed ${recordSuccess} records successfully / ${recordFail}`;
+        Logger.log(report);
+        return report;
+    }
+
+    async importTagFileToDb(filename: string) {
+        const tagReader = TagFileReader.fromCsv(filename);
+        if ( tagReader.load() === true ) {
+            const output = await this.processTagFileData(tagReader.fileData);
+        } else {
+            Logger.log('Failed to import this file to database. Please check with admin');
+        }
+    }
+
+    async processTagFileData(tags: FileTagData[]): Promise<string> {
+        let recordSuccess = 0;
+        let recordFail = 0;
+        for (const item of tags) {
+            // process image array
+            const tag: CreateTagDto = {
+                    name: item[0],
+                };
+            try {
+                    const result = await this.tagService.createTag(tag, item[1], this.userId);
+                    if (result) { recordSuccess++; }
+                } catch (error) {
+                    recordFail++;
+                    this.logger.error(`Failed to create a Tag: `, error.stack);
+                    // throw new InternalServerErrorException();
+                }
+        }
+        const report = `Processed ${recordSuccess} records successfully / ${recordFail} failed`;
+        Logger.log(report);
+        return report;
     }
 
     async importExchangeFileToDb(filename: string) {
@@ -56,7 +136,7 @@ export class FileReaderService {
         if ( exchangeReader.load() === true ) {
             // const summary = FileSummary.winsAnalysisWithReport('Man United');
             // summary.buildAndPrintReport(exchangeReader.fileData);
-            const output = await this.processExchangeFileData(exchangeReader.fileData);
+            // const output = await this.processExchangeFileData(exchangeReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
@@ -67,68 +147,39 @@ export class FileReaderService {
         if ( partReader.load() === true ) {
             // const summary = FileSummary.winsAnalysisWithReport('Man United');
             // summary.buildAndPrintReport(exchangeReader.fileData);
-            const output = await this.processPartFileData(partReader.fileData);
+            // const output = await this.processPartFileData(partReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
     }
 
-    async processCategoryFileData(categories: FileCategoryData[]): Promise<string> {
-        let wins = 0;
-        for (const match of categories) {
-            // this.categoryRepository.delete('aaa');
-            Logger.log('here');
-            if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
-                wins++;
-            } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
-                wins++;
-            }
-        }
-        return `Team`;
-    }
+    // async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string> {
+    //     let wins = 0;
 
-    async processMarketFileData(markets: FileMarketData[]): Promise<string> {
-        let wins = 0;
+    //     for (const match of exchanges) {
+    //         // this.categoryRepository.delete('aaa');
+    //         Logger.log('here');
+    //         if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
+    //             wins++;
+    //         } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
+    //             wins++;
+    //         }
+    //     }
+    //     return `Team`;
+    // }
 
-        for (const match of markets) {
-            // this.categoryRepository.delete('aaa');
-            Logger.log('here');
-            if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
-                wins++;
-            } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
-                wins++;
-            }
-        }
-        return `Team`;
-    }
+    // async processPartFileData(parts: FilePartData[]): Promise<string> {
+    //     let wins = 0;
 
-    async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string> {
-        let wins = 0;
-
-        for (const match of exchanges) {
-            // this.categoryRepository.delete('aaa');
-            Logger.log('here');
-            if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
-                wins++;
-            } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
-                wins++;
-            }
-        }
-        return `Team`;
-    }
-
-    async processPartFileData(parts: FilePartData[]): Promise<string> {
-        let wins = 0;
-
-        for (const match of parts) {
-            // this.categoryRepository.delete('aaa');
-            Logger.log('here');
-            if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
-                wins++;
-            } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
-                wins++;
-            }
-        }
-        return `Team`;
-    }
+    //     for (const match of parts) {
+    //         // this.categoryRepository.delete('aaa');
+    //         Logger.log('here');
+    //         if (match[1] === 'Man United' && match[5] === ExchangeResult.HomeWin) {
+    //             wins++;
+    //         } else if (match[2] === 'Man United' && match[5] === ExchangeResult.AwayWin) {
+    //             wins++;
+    //         }
+    //     }
+    //     return `Team`;
+    // }
 }

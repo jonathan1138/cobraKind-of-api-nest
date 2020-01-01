@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, NotAcceptableException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, NotAcceptableException, ConflictException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { CreateMarketDto } from './dto/create-market-dto';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,14 +6,12 @@ import { MarketRepository } from './market.repository';
 import { Market } from './market.entity';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { ImgFolder } from '../shared/enums/upload-img-folder.enum';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { TagRepository } from '../market-tag/tag.repository';
 import { Tag } from 'src/market-tag/tag.entity';
 import { Uuid } from 'aws-sdk/clients/groundstation';
-import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
 import { UserRepository } from 'src/user/user.repository';
-import { Profile } from '../user-profile/profile.entity';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
@@ -33,7 +31,6 @@ export class MarketService {
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
-        private readonly fileReaderService: FileReaderService,
         private readonly profileService: ProfileService,
     ) {}
 
@@ -88,7 +85,8 @@ export class MarketService {
         return this.marketRepository.getTagsByCatId(id, filterDto, page);
     }
 
-    async createMarket(createMarketDto: CreateMarketDto, categoryId: string, userId: string, images?: object[]): Promise<Market> {
+    async createMarket(createMarketDto: CreateMarketDto, categoryId: string, userId: string,
+                       images?: object[], filenameInPath?: boolean): Promise<Market> {
         const category = await this.categoryRepository.getCategoryById(categoryId);
         const isMarketNameUnique = await this.marketRepository.isNameUnique(createMarketDto.name);
         const { tags } = createMarketDto;
@@ -97,7 +95,7 @@ export class MarketService {
 
         if ( isMarketNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.MARKET_IMG_FOLDER);
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.MARKET_IMG_FOLDER, filenameInPath);
                 createMarketDto.images = s3ImageArray;
             }
             const created = await this.marketRepository.createMarket(createMarketDto, category, processedTags);
@@ -156,10 +154,10 @@ export class MarketService {
         return market;
     }
 
-    async uploadMarketImages(id: string, image: any): Promise<string[]> {
+    async uploadMarketImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
         if (image) {
             const market = await this.marketRepository.getMarketById(id);
-            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.MARKET_IMG_FOLDER);
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.MARKET_IMG_FOLDER, filenameInPath);
             s3ImgUrlArray.forEach(item => {
                 market.images.push(item);
             });
@@ -177,11 +175,6 @@ export class MarketService {
         market.images = [];
         await market.save();
         return arrayImages;
-    }
-
-    async loadMarketsFile(filename: string): Promise<void> {
-        Logger.log('Work in progress');
-        this.fileReaderService.importMarketFileToDb(filename);
     }
 
     async processTags(catId: Uuid, tags: string[], processType: string): Promise<Tag[]> {

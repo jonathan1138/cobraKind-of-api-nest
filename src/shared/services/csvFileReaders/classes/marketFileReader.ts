@@ -1,23 +1,25 @@
 import { DataReader } from '../interfaces/csvReader.interfaces';
-import { FileCategoryData } from '../types/fileCategoryData';
+import { FileMarketData } from '../types/fileMarketData';
 import { CsvFileReader } from './csvFileReader';
 
-export class CategoryFileReader {
-    static fromCsv(filename: string): CategoryFileReader {
-        return new CategoryFileReader(new CsvFileReader(filename));
+export class MarketFileReader {
+    static fromCsv(filename: string): MarketFileReader {
+        return new MarketFileReader(new CsvFileReader(filename));
     }
 
-    fileData: FileCategoryData[] = [];
+    fileData: FileMarketData[] = [];
     constructor(public reader: DataReader) {}
 
     load(): boolean {
         if ( this.reader.read() ) {
             this.fileData = this.reader.data
-                .map((row: string[]): FileCategoryData => {
+                .map((row: string[]): FileMarketData => {
                     return [
                         row[0],
                         row[1],
                         row[2],
+                        row[3],
+                        row[4],
                     ];
                 },
             );

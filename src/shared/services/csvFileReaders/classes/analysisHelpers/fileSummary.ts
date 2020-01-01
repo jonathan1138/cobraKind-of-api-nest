@@ -1,7 +1,7 @@
-import { FileExchangeData } from '../types/fileExchangeData';
+import { FileExchangeData } from '../../types/fileExchangeData';
 import { FileConsoleReport } from './consoleReports';
-import { WinsAnalysis } from './fileCategoryAnalyzers';
-import { FileCategoryAnalyzer, FileOutputTarget } from '../interfaces/csvReader.interfaces';
+import { WinsAnalysis } from './fileCategoryImporter';
+import { FileCategoryAnalyzer, FileOutputTarget } from '../../interfaces/csvReader.interfaces';
 
 export class FileSummary {
 
@@ -17,7 +17,7 @@ export class FileSummary {
         public outputTarget: FileOutputTarget ) {}
 
     buildAndPrintReport(exchanges: FileExchangeData[]): void {
-        const output = this.analyzer.run(exchanges);
-        this.outputTarget.print(output);
+        // const output = this.analyzer.run(exchanges);
+        // this.outputTarget.print(output);
     }
 }

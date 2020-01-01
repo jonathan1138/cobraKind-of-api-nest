@@ -1,6 +1,5 @@
 import { Injectable, ConflictException, NotFoundException, NotAcceptableException, Logger } from '@nestjs/common';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
-import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { PartRepository } from './part.repository';
 import { MarketRepository } from 'src/market/market.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,7 +18,6 @@ export class PartService {
         @InjectRepository(PartRepository)
         private partRepository: PartRepository,
         private readonly s3UploadService: S3UploadService,
-        private readonly fileReaderService: FileReaderService,
     ) {}
 
     getParts(filterDto: StatusAndSearchFilterDto): Promise<Part[]> {
@@ -34,13 +32,13 @@ export class PartService {
        return await this.partRepository.getPartsByMarket(filterDto, marketId);
     }
 
-    async createPart(createPartDto: CreatePartDto, marketId: string, images?: object[]): Promise<Part> {
+    async createPart(createPartDto: CreatePartDto, marketId: string, images?: object[], filenameInPath?: boolean): Promise<Part> {
         const market = await this.marketRepository.getMarketById(marketId);
         const isPartNameUnique = await this.partRepository.isNameUnique(createPartDto.name);
 
         if ( isPartNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.PART_IMG_FOLDER);
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.PART_IMG_FOLDER, filenameInPath);
                 createPartDto.images = s3ImageArray;
             }
             return this.partRepository.createPart(createPartDto, market);
@@ -80,11 +78,11 @@ export class PartService {
         return part;
     }
 
-    async uploadPartImage(id: string, image: any): Promise<void> {
+    async uploadPartImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
         if (image) {
             const market = await this.partRepository.getPartById(id);
             if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.PART_IMG_FOLDER);
+                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.PART_IMG_FOLDER, filenameInPath);
                 market.images.push(s3ImgUrl);
                 await market.save();
             }
@@ -100,11 +98,6 @@ export class PartService {
         market.images = [];
         await market.save();
         return arrayImages;
-    }
-
-    async loadPartsFile(filename: string): Promise<void> {
-        Logger.log('Work in progress');
-        this.fileReaderService.importPartFileToDb(filename);
     }
 
     // getAllParts(): Part[] {

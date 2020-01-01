@@ -4,7 +4,7 @@ import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from './user.repository';
 import { AuthModule } from 'src/user-auth/auth.module';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { FollowsEntity } from './entities/follows.entity';
 
 @Module({

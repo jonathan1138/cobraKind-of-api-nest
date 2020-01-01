@@ -20,10 +20,12 @@ import { ListingRatingModule } from './exchange-listing-rating/listing-rating.mo
 import { BasketModule } from './basket/basket.module';
 import { PriceRatingInfoModule } from './exchange-price-rating-info/price-rating-info.module';
 import { HomeModule } from './home/home.module';
+import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.module';
 
 @Module({
-  imports: [HomeModule, AuthModule, UserModule, CategoryModule, MarketModule, MarketShapeModule, TagModule, BasketModule, PriceRatingInfoModule,
-    ProfileModule, ExchangeModule, GenreModule, SubVariationModule, PartModule, SubItemModule, SubModModule, PostModule, ListingRatingModule],
+  imports: [HomeModule, AuthModule, UserModule, CategoryModule, MarketModule, MarketShapeModule,
+    TagModule, BasketModule, PriceRatingInfoModule, ProfileModule, ExchangeModule, GenreModule,
+    SubVariationModule, PartModule, SubItemModule, SubModModule, PostModule, ListingRatingModule, FileReaderModule],
   providers: [
     // {
     //   provide: APP_FILTER,
@@ -34,7 +36,8 @@ import { HomeModule } from './home/home.module';
       useClass: RoundTripInterceptor,
     },
   ],
-  exports: [AuthModule, UserModule, CategoryModule, MarketModule, SubItemModule, SubModModule, ListingRatingModule, BasketModule,
-     MarketShapeModule, TagModule, ProfileModule, ExchangeModule, GenreModule, SubVariationModule, PartModule, PostModule, PriceRatingInfoModule],
+  exports: [AuthModule, UserModule, CategoryModule, MarketModule, SubItemModule, SubModModule,
+    ListingRatingModule, BasketModule, MarketShapeModule, TagModule, ProfileModule, ExchangeModule, GenreModule,
+    SubVariationModule, PartModule, PostModule, PriceRatingInfoModule, FileReaderModule],
 })
 export class ApiModule {}

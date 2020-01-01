@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { PostRepository } from './post.repository';
 import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
@@ -67,11 +67,12 @@ export class PostService {
        return await this.postRepository.getPostsByExchange(filterDto, postId);
     }
 
-    async createPost(createPostDto: CreatePostDto, exchangeId: string, user: UserEntity, images?: object[]): Promise<PostEntity> {
+    async createPost(createPostDto: CreatePostDto, exchangeId: string, user: UserEntity,
+                     images?: object[], filenameInPath?: boolean): Promise<PostEntity> {
         const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
         const market = await this.marketRepository.getMarketById(exchange.marketId);
         if ( Array.isArray(images) && images.length > 0) {
-            const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.POST_IMG_FOLDER);
+            const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.POST_IMG_FOLDER, filenameInPath);
             createPostDto.images = s3ImageArray;
         }
         const post = this.postRepository.createPost(createPostDto, exchange, market, user);
@@ -97,11 +98,11 @@ export class PostService {
         return post;
     }
 
-    async uploadPostImage(id: string, image: any): Promise<void> {
+    async uploadPostImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
         if (image) {
             const post = await this.postRepository.getPostById(id);
             if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER);
+                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
                 post.images.push(s3ImgUrl);
                 await post.save();
             }

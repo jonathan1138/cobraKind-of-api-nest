@@ -4,16 +4,10 @@ import { CategoryService } from './category.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryRepository } from './category.repository';
 import { AuthModule } from '../user-auth/auth.module';
-import { S3UploadService } from '../shared/services/awsS3Upload.service';
-import { FileReaderService } from '../shared/services/csvFileReaders/fileReader.service';
-import { MarketRepository } from '../market/market.repository';
-import { ExchangeRepository } from '../exchange/exchange.repository';
-import { GenreRepository } from 'src/exchange-genre/genre.repository';
-import { PartRepository } from '../market-part/part.repository';
-
+import { S3UploadService } from '../shared/services/s3Uploader/awsS3Upload.service';
 @Module({
-  imports: [TypeOrmModule.forFeature([CategoryRepository, MarketRepository, ExchangeRepository, GenreRepository, PartRepository]), AuthModule ],
+  imports: [TypeOrmModule.forFeature([CategoryRepository]), AuthModule ],
   controllers: [CategoryController],
-  providers: [CategoryService, S3UploadService, FileReaderService],
+  providers: [CategoryService, S3UploadService],
 })
 export class CategoryModule {}

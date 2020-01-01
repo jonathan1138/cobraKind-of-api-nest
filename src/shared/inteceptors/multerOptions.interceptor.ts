@@ -18,8 +18,8 @@ export const multerOptions = {
     },
     // Check the mimetypes to allow for upload
     fileFilter: (req: any, file: any, cb: any) => {
-        // if (file.mimetype.match(/\/(jpg|jpeg|png|gif|csv)$/)) {
-             if (file.mimetype.match(/\/(csv)$/)) {
+        if (file.mimetype.match(/\/(jpg|jpeg|png|gif|csv)$/)) {
+            // if (file.mimetype.match(/\/(csv)$/)) {
             // Allow storage of file
             cb(null, true);
         } else {
@@ -40,6 +40,9 @@ export const multerOptions = {
                 case 'markets':
                         uploadPath = multerConfig.dest + '/' + paramPath;
                         break;
+                case 'tags':
+                    uploadPath = multerConfig.dest + '/' + paramPath;
+                    break;
                 default:
                     uploadPath = multerConfig.dest + '/' + 'orphans';
             }

@@ -1,6 +1,6 @@
 import { Controller, Post, UseInterceptors, UploadedFile, Param, ParseUUIDPipe, Patch, Body, Get, UseGuards, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { ProfileService } from './profile.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
@@ -81,7 +81,7 @@ export class ProfileController {
     async uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string> {
         const idResult = await this.profileService.checkIfUserExists(id);
         if ( idResult ) {
-            const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.PROFILE_IMG_FOLDER);
+            const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.PROFILE_IMG_FOLDER, false);
             this.profileService.updateProfilePhoto(id, s3ImgUrl);
             return s3ImgUrl;
         }

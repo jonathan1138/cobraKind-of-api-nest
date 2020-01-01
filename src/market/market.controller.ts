@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete,
             Patch, Query, UsePipes, ValidationPipe, UseGuards,
-            ParseUUIDPipe, UseInterceptors, UploadedFile, UploadedFiles, Logger } from '@nestjs/common';
+            ParseUUIDPipe, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { MarketService } from './market.service';
 import { CreateMarketDto } from './dto/create-market-dto';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
@@ -8,8 +8,7 @@ import { ListingStatusValidationPipe } from '../shared/pipes/listingStatus-valid
 import { Market } from './market.entity';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { IpAddress } from 'src/shared/decorators/get-user-ip.decorator';
@@ -128,24 +127,6 @@ export class MarketController {
     @UseInterceptors(FilesInterceptor('image'))
     uploadImage(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.marketService.uploadMarketImages(id, images);
-    }
-
-    @Post('/file/:dest')
-    @UseGuards(AuthGuard())
-    @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async upload(
-        @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
-        const filename = Object.values(file)[1];
-        this.importfiletodb('markets' + '/' + filename);
-    }
-
-    @Post('/importfiletodb')
-    @UseGuards(AuthGuard())
-    importfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.marketService.loadMarketsFile(filename);
     }
 
     @Post('/watch/:id')

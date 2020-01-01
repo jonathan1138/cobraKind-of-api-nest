@@ -95,22 +95,4 @@ export class CategoryController {
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.categoryService.deleteCategoryImages(id);
     }
-
-    @Post('/file/:dest')
-    @UseGuards(AuthGuard())
-    @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async upload(
-        @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
-        const filename = Object.values(file)[1];
-        this.importfiletodb('categories' + '/' + filename);
-    }
-
-    @Post('/importfiletodb')
-    @UseGuards(AuthGuard())
-    importfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.categoryService.loadCategoriesFile(filename);
-    }
 }

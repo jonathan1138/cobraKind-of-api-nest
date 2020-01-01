@@ -1,7 +1,6 @@
 import { Controller, Post, UseInterceptors, Param, UploadedFile, Logger,
     Body, ParseUUIDPipe, Delete, Patch, UsePipes, UploadedFiles, Query, Get, ValidationPipe } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { multerOptions } from 'src/shared/inteceptors/multerOptions.interceptor';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
@@ -70,21 +69,5 @@ export class PartController {
     deletePartImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.partService.deletePartImages(id);
-    }
-
-    @Post('/file/:dest')
-    @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async upload(
-        @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
-        const filename = Object.values(file)[1];
-        this.importfiletodb('parts' + '/' + filename);
-    }
-
-    @Post('/importfiletodb')
-    importfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.partService.loadPartsFile(filename);
     }
 }

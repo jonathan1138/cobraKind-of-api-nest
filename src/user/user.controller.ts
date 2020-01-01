@@ -6,7 +6,7 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { UserEntity } from './entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
-import { S3UploadService } from '../shared/services/awsS3Upload.service';
+import { S3UploadService } from '../shared/services/s3Uploader/awsS3Upload.service';
 import { UserFollowsDto } from './dto/user-follows-dto';
 import { GetUsersFilterDto } from './helpers/get-users-filter.dto';
 import { UUID } from 'aws-sdk/clients/inspector';

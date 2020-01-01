@@ -5,7 +5,7 @@ export class CreateMarketDto {
     @IsString()
     name: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     tags: string[];
 
     @IsOptional()

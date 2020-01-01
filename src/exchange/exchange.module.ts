@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MarketRepository } from '../market/market.repository';
 import { AuthModule } from '../user-auth/auth.module';
-import { S3UploadService } from '../shared/services/awsS3Upload.service';
-import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
+import { S3UploadService } from '../shared/services/s3Uploader/awsS3Upload.service';
 import { ExchangeService } from './exchange.service';
 import { ExchangeController } from './exchange.controller';
 import { GenreRepository } from 'src/exchange-genre/genre.repository';
@@ -16,11 +15,13 @@ import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from '../user-profile/profile.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
+import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, ExchangeRepository, MarketRepository,
-    GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp, TagRepository, ProfileRepository]), AuthModule],
+    GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp,
+    TagRepository, ProfileRepository, SubItemRepository]), AuthModule],
   controllers: [ExchangeController],
-  providers: [ExchangeService, S3UploadService, FileReaderService, ProfileService],
+  providers: [ExchangeService, S3UploadService, ProfileService],
 })
 export class ExchangeModule {}

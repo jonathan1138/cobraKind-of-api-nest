@@ -1,4 +1,4 @@
-import { Injectable, ParseUUIDPipe, NotFoundException, NotAcceptableException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, NotAcceptableException, ConflictException, Inject, forwardRef } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category-dto';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,11 +6,8 @@ import { CategoryRepository } from './category.repository';
 import { Category } from './category.entity';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { ImgFolder } from '../shared/enums/upload-img-folder.enum';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
-import { FileReaderService } from '../shared/services/csvFileReaders/fileReader.service';
-import { create } from 'domain';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { ListingStatusNote } from '../shared/enums/listing-status-note.enum';
-import { stat } from 'fs';
 
 @Injectable()
 export class CategoryService {
@@ -18,7 +15,6 @@ export class CategoryService {
         @InjectRepository(CategoryRepository)
         private categoryRepository: CategoryRepository,
         private readonly s3UploadService: S3UploadService,
-        private readonly fileReaderService: FileReaderService,
     ) {}
 
     getCategories(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Category[]> {
@@ -37,11 +33,11 @@ export class CategoryService {
         return await this.categoryRepository.getCategoryWithMarketsById(filterDto, categoryId);
      }
 
-    async createCategory(createCategoryDto: CreateCategoryDto, images?: object[]): Promise<Category> {
+    async createCategory(createCategoryDto: CreateCategoryDto, images?: object[], filenameInPath?: boolean): Promise<Category> {
         const isCategoryNameUnique = await this.categoryRepository.isNameUnique(createCategoryDto.name);
         if ( isCategoryNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.CATEGORY_IMG_FOLDER);
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.CATEGORY_IMG_FOLDER, filenameInPath);
                 createCategoryDto.images = s3ImageArray;
             }
             return this.categoryRepository.createCategory(createCategoryDto);
@@ -89,10 +85,10 @@ export class CategoryService {
         return category;
     }
 
-    async uploadCategoryImages(id: string, images: any): Promise<string[]> {
+    async uploadCategoryImages(id: string, images: any, filenameInPath?: boolean): Promise<string[]> {
         if (images) {
             const category = await this.categoryRepository.getCategoryById(id);
-            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.CATEGORY_IMG_FOLDER);
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.CATEGORY_IMG_FOLDER, filenameInPath);
             s3ImgUrlArray.forEach(item => {
                 category.images.push(item);
             });
@@ -110,10 +106,6 @@ export class CategoryService {
         category.images = [];
         await category.save();
         return arrayImages;
-    }
-
-    async loadCategoriesFile(filename: string): Promise<void> {
-        this.fileReaderService.importCategoryFileToDb(filename);
     }
 
     // getAllCategories(): Category[] {

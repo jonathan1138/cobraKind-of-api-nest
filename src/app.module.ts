@@ -20,6 +20,7 @@ import { ListingRatingModule } from './exchange-listing-rating/listing-rating.mo
 import { BasketModule } from './basket/basket.module';
 import { PriceRatingInfoModule } from './exchange-price-rating-info/price-rating-info.module';
 import { HomeModule } from './home/home.module';
+import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { HomeModule } from './home/home.module';
     ListingRatingModule,
     BasketModule,
     PriceRatingInfoModule,
+    FileReaderModule,
   ],
 })
 export class AppModule {}

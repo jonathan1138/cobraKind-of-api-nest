@@ -1,8 +1,7 @@
 import { Injectable, ConflictException, NotFoundException, NotAcceptableException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
-import { FileReaderService } from 'src/shared/services/csvFileReaders/fileReader.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExchangeRepository } from 'src/exchange/exchange.repository';
 import { SubItemRepository } from './sub-item.repository';
@@ -26,7 +25,6 @@ export class SubItemService {
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
-        private readonly fileReaderService: FileReaderService,
     ) {}
 
     getSubItems(filterDto: StatusAndSearchFilterDto): Promise<SubItem[]> {
@@ -60,12 +58,12 @@ export class SubItemService {
        return await this.subItemRepository.getSubItemsByExchange(filterDto, exchangeId);
     }
 
-    async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string, images?: object[]): Promise<SubItem> {
+    async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string, images?: object[], filenameInPath?: boolean): Promise<SubItem> {
         const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
 
         if ( exchange ) {
             if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.SUBITEM_IMG_FOLDER);
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.SUBITEM_IMG_FOLDER, filenameInPath);
                 createSubItemDto.images = s3ImageArray;
             }
             return this.subItemRepository.createSubItem(createSubItemDto, exchange);
@@ -106,11 +104,11 @@ export class SubItemService {
         return subItem;
     }
 
-    async uploadSubItemImage(id: string, image: any): Promise<void> {
+    async uploadSubItemImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
         if (image) {
             const subItem = await this.subItemRepository.getSubItemById(id);
             if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.MARKET_IMG_FOLDER);
+                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.MARKET_IMG_FOLDER, filenameInPath);
                 subItem.images.push(s3ImgUrl);
                 await subItem.save();
             }
@@ -126,11 +124,6 @@ export class SubItemService {
         subItem.images = [];
         await subItem.save();
         return arrayImages;
-    }
-
-    async loadSubItemsFile(filename: string): Promise<void> {
-        Logger.log('Work in progress');
-      //  this.fileReaderService.importSubItemFileToDb(filename);
     }
 
     async watchSubItem(id: string, userId: string): Promise<void> {

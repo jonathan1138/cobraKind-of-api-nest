@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostService } from './post.service';
 import { PostController } from './post.controller';
 import { PostRepository } from './post.repository';
-import { S3UploadService } from 'src/shared/services/awsS3Upload.service';
+import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { UserRepository } from '../user/user.repository';
 import { ExchangeRepository } from 'src/exchange/exchange.repository';
 import { AuthModule } from 'src/user-auth/auth.module';

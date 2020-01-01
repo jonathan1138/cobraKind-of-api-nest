@@ -1,4 +1,4 @@
-export type FileCategoryData = [
+export type FileItemData = [
     string,
     string,
     string,
