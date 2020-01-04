@@ -26,12 +26,17 @@ export class TagRepository extends Repository<Tag> {
         }
     }
 
-    async allMarkets(): Promise<Tag[]> {
+    async allMarkets(page: number = 1): Promise<Tag[]> {
         // return await this.find({select: ['name'], relations: ['markets']});
-        return await this.createQueryBuilder('tag')
-        .leftJoinAndSelect('tag.markets', 'market')
-        .select(['tag.name', 'tag.categoryId', 'market.id', 'market.name'])
-        .getMany();
+        const query = this.createQueryBuilder('tag')
+        .leftJoinAndSelect('tag.markets', 'market');
+        // .select(['tag.name', 'tag.id', 'tag.categoryId', 'market.id', 'market.name']);
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        query.orderBy('tag.name', 'ASC');
+        return query.getMany();
     }
 
     async marketsByTags(ids: string[]): Promise<Tag[]> {
@@ -76,6 +81,7 @@ export class TagRepository extends Repository<Tag> {
     async tagsById(id: string): Promise<Tag> {
         const query = this.createQueryBuilder('tag');
         query.andWhere('tag.id = :id', { id });
+        query.leftJoinAndSelect('tag.markets', 'market');
         try {
             const found = await query.getOne();
             if (found) {

@@ -19,8 +19,8 @@ constructor( private tagService: TagService ) {}
     }
 
     @Get('/markets')
-    allMarkets(): Promise<Tag[]> {
-        return this.tagService.allMarkets();
+    allMarkets(@Query('page') page: number): Promise<Tag[]> {
+        return this.tagService.allMarkets(page);
     }
 
     @Get('/marketIds')

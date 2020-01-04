@@ -21,9 +21,10 @@ export class ExchangeController {
 
     @Get()
     getExchanges(
+        @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         ): Promise<Exchange[]> {
-        return this.exchangeService.getExchanges(filterDto);
+        return this.exchangeService.getExchanges(filterDto, page);
     }
 
     @Get('/genre')
@@ -83,6 +84,7 @@ export class ExchangeController {
 
     @Post('/:marketid')
     @UsePipes(ValidationPipe)
+    @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('images'))
     createExchange(
         @Param('marketid', new ParseUUIDPipe()) marketId: string,
@@ -95,12 +97,14 @@ export class ExchangeController {
     }
 
     @Delete('/:id')
+    @UseGuards(AuthGuard())
     deleteExchange(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.exchangeService.deleteExchange(id);
     }
 
     @Patch('/status/:id')
+    @UseGuards(AuthGuard())
     updateExchangeStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
@@ -110,6 +114,7 @@ export class ExchangeController {
     }
 
     @Patch('/genre/:id')
+    @UseGuards(AuthGuard())
     updateExchangeGenres(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('genres') genres: Genre[],
@@ -118,6 +123,7 @@ export class ExchangeController {
     }
 
     @Patch('/subVariation/:id')
+    @UseGuards(AuthGuard())
     updateExchangeVariation(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('subVariations') subVariations: SubVariation[],
@@ -126,12 +132,14 @@ export class ExchangeController {
     }
 
     @Post('/images/:id')
+    @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('image'))
     uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.exchangeService.uploadExchangeImage(id, image);
     }
 
     @Delete('/images/:id')
+    @UseGuards(AuthGuard())
     deleteExchangeImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.exchangeService.deleteExchangeImages(id);

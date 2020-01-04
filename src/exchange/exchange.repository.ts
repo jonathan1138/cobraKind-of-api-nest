@@ -13,8 +13,8 @@ import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-inf
 export class ExchangeRepository extends Repository<Exchange> {
     private logger = new Logger('ExchangeRepository');
 
-    async getExchanges(filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto);
+    async getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
+        const query = this.buildQuery(filterDto, page);
         try {
             const exchanges = await query.getMany();
             return exchanges;
@@ -138,7 +138,7 @@ export class ExchangeRepository extends Repository<Exchange> {
         }
     }
 
-    private buildQuery(filterDto: StatusAndSearchFilterDto) {
+    private buildQuery(filterDto: StatusAndSearchFilterDto, page?: number) {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('exchange');
         query.leftJoinAndSelect('exchange.genres', 'genre');
@@ -149,6 +149,11 @@ export class ExchangeRepository extends Repository<Exchange> {
         if (search) {
             query.andWhere('(exchange.name LIKE :search OR exchange.info LIKE :search)', { search: `%${search}%` });
         }
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        query.orderBy('exchange.name', 'ASC');
         return query;
     }
 

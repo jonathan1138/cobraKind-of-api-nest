@@ -22,8 +22,8 @@ export class TagService {
         return this.tagRepository.allTags(page);
     }
 
-    async allMarkets(): Promise<Tag[]> {
-        return this.tagRepository.allMarkets();
+    async allMarkets(page: number = 1): Promise<Tag[]> {
+        return this.tagRepository.allMarkets(page);
     }
 
     async marketsByTags(ids: string[]): Promise<Tag[]> {
@@ -75,6 +75,9 @@ export class TagService {
             const tag = await this.tagRepository.tagsById(id);
             if (tag) {
                 tag.name = createTagDto.name;
+                if (createTagDto.markets) {
+                    tag.markets = createTagDto.markets;
+                }
                 await tag.save();
             } else {
                 throw new NotFoundException('Cannot find Tag');

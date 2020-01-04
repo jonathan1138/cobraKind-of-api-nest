@@ -116,6 +116,7 @@ export class FileReaderService {
             // process image array
             const tag: CreateTagDto = {
                     name: item[0],
+                    markets: []
                 };
             try {
                     const result = await this.tagService.createTag(tag, item[1], this.userId);

@@ -38,8 +38,8 @@ export class ExchangeService {
         private readonly profileService: ProfileService,
     ) {}
 
-    getExchanges(filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        return this.exchangeRepository.getExchanges(filterDto);
+    getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
+        return this.exchangeRepository.getExchanges(filterDto, page);
     }
 
     async getExchangeById(id: string): Promise<Exchange> {
@@ -215,6 +215,7 @@ export class ExchangeService {
             }
             newGenre.name = genre;
             newGenre.marketId = mktId;
+            newGenre.status = ListingStatus.TO_REVIEW;
             newGenres.push(newGenre);
         });
         await Promise.all(uploadPromises);
