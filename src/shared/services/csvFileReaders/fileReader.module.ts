@@ -18,10 +18,13 @@ import { TagService } from 'src/market-tag/tag.service';
 import { ExchangeService } from 'src/exchange/exchange.service';
 import { GenreRepository } from '../../../exchange-genre/genre.repository';
 import { SubVariationRepository } from '../../../exchange-sub-variation/sub-variation.repository';
+import { ManufacturerRepository } from '../../../exchange-manufacturer/manufacturer.repository';
+import { YearCreatedRepository } from '../../../exchange-year/year.repository';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
-        UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository]), AuthModule],
+        UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository,
+        ManufacturerRepository, YearCreatedRepository]), AuthModule],
     controllers: [FileReaderController],
     providers: [FileReaderService, CategoryService, MarketService, S3UploadService, ProfileService, TagService, ExchangeService],
 })

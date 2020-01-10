@@ -21,6 +21,8 @@ import { BasketModule } from './basket/basket.module';
 import { PriceRatingInfoModule } from './exchange-price-rating-info/price-rating-info.module';
 import { HomeModule } from './home/home.module';
 import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.module';
+import { YearCreatedModule } from './exchange-year/year.module';
+import { ManufacturerModule } from './exchange-manufacturer/manufacturer.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.mo
     BasketModule,
     PriceRatingInfoModule,
     FileReaderModule,
+    YearCreatedModule,
+    ManufacturerModule,
   ],
 })
 export class AppModule {}

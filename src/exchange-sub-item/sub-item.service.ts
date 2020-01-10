@@ -12,6 +12,10 @@ import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
+import { YearCreatedRepository } from 'src/exchange-year/year.repository';
 
 @Injectable()
 export class SubItemService {
@@ -22,6 +26,10 @@ export class SubItemService {
         private exchangeRepository: ExchangeRepository,
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
+        @InjectRepository(ManufacturerRepository)
+        private manufacturerRepository: ManufacturerRepository,
+        @InjectRepository(YearCreatedRepository)
+        private yearRepository: YearCreatedRepository,
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
@@ -60,13 +68,28 @@ export class SubItemService {
 
     async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string, images?: object[], filenameInPath?: boolean): Promise<SubItem> {
         const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
-
+        let newYear = new YearCreated();
+        let newManufacturer = new Manufacturer();
+        const foundYear = await this.yearRepository.checkYearByName(createSubItemDto.year);
+        const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createSubItemDto.manufacturer);
+        if (foundYear) {
+            newYear = foundYear;
+        } else {
+            const {year, era } = createSubItemDto;
+            newYear.year = year;
+            newYear.era = era;
+        }
+        if (foundManufacturer) {
+            newManufacturer = foundManufacturer;
+        } else {
+            newManufacturer.name = createSubItemDto.name;
+        }
         if ( exchange ) {
             if ( Array.isArray(images) && images.length > 0) {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.SUBITEM_IMG_FOLDER, filenameInPath);
                 createSubItemDto.images = s3ImageArray;
             }
-            return this.subItemRepository.createSubItem(createSubItemDto, exchange);
+            return this.subItemRepository.createSubItem(createSubItemDto, exchange, newYear, newManufacturer);
         } else {
             throw new ConflictException('Exchange Not Found');
         }

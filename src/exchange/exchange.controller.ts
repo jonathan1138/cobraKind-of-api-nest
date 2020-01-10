@@ -133,9 +133,9 @@ export class ExchangeController {
 
     @Post('/images/:id')
     @UseGuards(AuthGuard())
-    @UseInterceptors(FileInterceptor('image'))
-    uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.exchangeService.uploadExchangeImage(id, image);
+    @UseInterceptors(FilesInterceptor('image'))
+    uploadImage(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+        return this.exchangeService.uploadExchangeImages(id, images);
     }
 
     @Delete('/images/:id')

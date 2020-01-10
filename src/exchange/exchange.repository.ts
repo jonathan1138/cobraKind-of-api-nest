@@ -8,6 +8,9 @@ import { Genre } from 'src/exchange-genre/genre.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
+import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import { ManufacturerRepository } from '../exchange-manufacturer/manufacturer.repository';
 
 @EntityRepository(Exchange)
 export class ExchangeRepository extends Repository<Exchange> {
@@ -15,8 +18,18 @@ export class ExchangeRepository extends Repository<Exchange> {
 
     async getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
         const query = this.buildQuery(filterDto, page);
+        // query.leftJoinAndMapOne('exchange.market', Market, 'market', 'market.id = exchange.marketId');
+        query.leftJoinAndSelect('exchange.market', 'market');
         try {
             const exchanges = await query.getMany();
+            // sucks but whatever
+            exchanges.map(item => (
+                Object.entries(item.market).forEach(([key]) => {
+                    if (key !== 'name') {
+                        delete item.market[key];
+                    }
+                })
+            ));
             return exchanges;
         } catch (error) {
             this.logger.error(`Failed to get exchanges for user`, error.stack);
@@ -157,19 +170,19 @@ export class ExchangeRepository extends Repository<Exchange> {
         return query;
     }
 
-    async createExchange(createExchangeDto: CreateExchangeDto, market: Market, genres: Genre[], subVars: SubVariation[]): Promise<Exchange> {
+    async createExchange(createExchangeDto: CreateExchangeDto, market: Market, newYear: YearCreated, newManufacturer: Manufacturer,
+                         genres: Genre[], subVars: SubVariation[]): Promise<Exchange> {
         const { name, info, images, manufacturer, year } = createExchangeDto;
         const exchange = new Exchange();
         const priceRating = new PriceRatingInfo();
-
         exchange.name = name.replace(/,/g, ' ');
         exchange.info = info;
         exchange.images = images;
         exchange.market = market;
         exchange.status = ListingStatus.TO_REVIEW;
-        exchange.year = year;
-        exchange.manufacturer = manufacturer;
         exchange.priceRatingInfo = priceRating;
+        exchange.yearCreated = newYear;
+        exchange.manufacturer = newManufacturer;
 
         if (genres) {
             exchange.genres = genres;
@@ -185,7 +198,7 @@ export class ExchangeRepository extends Repository<Exchange> {
         } catch (error) {
             if (error.code === '23505') { // duplicate cat name
                 this.logger.error(`Failed to create a exchange`, error.stack);
-                throw new ConflictException('Name (Exchange, Genre or SubVar) already exists');
+                throw new ConflictException('Name (Exchange, Genre, Year, Manufacturer or SubVar) already exists');
             } else {
                 this.logger.error(`Failed to create a exchange`, error.stack);
                 throw new InternalServerErrorException();

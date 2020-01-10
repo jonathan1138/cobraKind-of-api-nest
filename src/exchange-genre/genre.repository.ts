@@ -6,8 +6,22 @@ import { Logger, NotAcceptableException } from '@nestjs/common';
 export class GenreRepository extends Repository<Genre> {
     private logger = new Logger('GenreRepository');
 
-    async allGenres(): Promise<Genre[]> {
-        return await this.find();
+    async allGenres(page: number = 1): Promise<Genre[]> {
+        if (page > 0) {
+            return await this.find({
+                order: {
+                    name: 'ASC',
+                },
+                take: 50,
+                skip: 50 * (page - 1),
+            });
+        } else {
+            return await this.find({
+                order: {
+                    name: 'ASC',
+                },
+            });
+        }
     }
 
     async allExchanges(): Promise<Genre[]> {

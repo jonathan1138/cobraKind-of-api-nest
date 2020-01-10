@@ -1,4 +1,4 @@
-import { Controller, Get, ParseUUIDPipe, Param, Body } from '@nestjs/common';
+import { Controller, Get, ParseUUIDPipe, Param, Body, Query } from '@nestjs/common';
 import { Genre } from './genre.entity';
 import { GenreService } from './genre.service';
 
@@ -8,8 +8,8 @@ export class GenreController {
     constructor( private genreService: GenreService ) {}
 
     @Get()
-    genres(): Promise<Genre[]> {
-        return this.genreService.allGenres();
+    genres(@Query('page') page: number): Promise<Genre[]> {
+        return this.genreService.allGenres(page);
     }
 
     @Get('/exchanges')

@@ -16,11 +16,13 @@ import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from '../user-profile/profile.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
 import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
+import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
+import { YearCreatedRepository } from '../exchange-year/year.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, ExchangeRepository, MarketRepository,
     GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp,
-    TagRepository, ProfileRepository, SubItemRepository]), AuthModule],
+    TagRepository, ProfileRepository, SubItemRepository, PartRepository, ManufacturerRepository, YearCreatedRepository]), AuthModule],
   controllers: [ExchangeController],
   providers: [ExchangeService, S3UploadService, ProfileService],
 })

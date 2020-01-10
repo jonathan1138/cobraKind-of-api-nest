@@ -6,6 +6,8 @@ import { UserEntity } from '../user/entities/user.entity';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { PostEntity } from 'src/post/post.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
 
 @Entity()
 @Unique(['name'])
@@ -30,12 +32,6 @@ export class SubItem extends BaseEntity {
 
     @Column('simple-array', { default: '' })
     images: string[];
-
-    @Column({nullable: true})
-    year: number;
-
-    @Column({nullable: true})
-    manufacturer: string;
 
     @Column({ default: 1 })
     watchCount: number;
@@ -63,4 +59,10 @@ export class SubItem extends BaseEntity {
     })
     @JoinColumn()
     subPriceRatingInfo: PriceRatingInfo;
+
+    @ManyToOne(() => Manufacturer, manufacturer => manufacturer.subItems, { eager: true } )
+    manufacturer: Manufacturer;
+
+    @ManyToOne(() => YearCreated, yearCreated => yearCreated.subItems, { eager: true } )
+    yearCreated: YearCreated;
 }

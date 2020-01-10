@@ -1,6 +1,8 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne } from 'typeorm';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { Exchange } from 'src/exchange/exchange.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
 
 @Entity()
 @Unique(['name'])
@@ -26,12 +28,6 @@ export class SubMod extends BaseEntity {
     @Column('simple-array', { default: '' })
     images: string[];
 
-    @Column({nullable: true})
-    year: number;
-
-    @Column({nullable: true})
-    manufacturer: string;
-
     @Column({ default: 1 })
     likes: number;
 
@@ -40,4 +36,10 @@ export class SubMod extends BaseEntity {
 
     @ManyToOne(() => Exchange, exchange => exchange.subMods, { eager: false } )
     exchange: Exchange;
+
+    @ManyToOne(() => Manufacturer, manufacturer => manufacturer.subMods, { eager: true, cascade: true } )
+    manufacturer: Manufacturer;
+
+    @ManyToOne(() => YearCreated, yearCreated => yearCreated.subMods, { eager: true, cascade: true } )
+    yearCreated: YearCreated;
 }

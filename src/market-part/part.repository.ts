@@ -5,6 +5,8 @@ import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filte
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Market } from 'src/market/market.entity';
 import { CreatePartDto } from './dto/create-part.dto';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
 
 @EntityRepository(Part)
 export class PartRepository extends Repository<Part> {
@@ -62,7 +64,7 @@ export class PartRepository extends Repository<Part> {
         return query;
     }
 
-    async createPart(createPartDto: CreatePartDto, market: Market): Promise<Part> {
+    async createPart(createPartDto: CreatePartDto, market: Market, newYear: YearCreated, newManufacturer: Manufacturer): Promise<Part> {
         const { name, info, images, manufacturer, year } = createPartDto;
         const part = new Part();
         part.name = name.replace(/,/g, ' ');
@@ -70,8 +72,9 @@ export class PartRepository extends Repository<Part> {
         part.images = images;
         part.market = market;
         part.status = ListingStatus.TO_REVIEW;
-        part.year = year;
-        part.manufacturer = manufacturer;
+        part.yearCreated = newYear;
+        part.manufacturer = newManufacturer;
+        // const foundGenre = await this.genreRepository.genresByName(genre);
 
         try {
             await part.save();

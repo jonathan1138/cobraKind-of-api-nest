@@ -6,6 +6,8 @@ import { CreateSubItemDto } from './dto/create-sub-item-dto';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
 
 @EntityRepository(SubItem)
 export class SubItemRepository extends Repository<SubItem> {
@@ -60,7 +62,8 @@ export class SubItemRepository extends Repository<SubItem> {
         return query;
     }
 
-    async createSubItem(createSubItemDto: CreateSubItemDto, exchange: Exchange): Promise<SubItem> {
+    async createSubItem(
+        createSubItemDto: CreateSubItemDto, exchange: Exchange, newYear: YearCreated, newManufacturer: Manufacturer,): Promise<SubItem> {
         const { name, info, images } = createSubItemDto;
         const subItem = new SubItem();
         const priceRating = new PriceRatingInfo();
@@ -71,6 +74,8 @@ export class SubItemRepository extends Repository<SubItem> {
         subItem.exchange = exchange;
         subItem.status = ListingStatus.TO_REVIEW;
         subItem.subPriceRatingInfo = priceRating;
+        subItem.yearCreated = newYear;
+        subItem.manufacturer = newManufacturer;
 
         try {
             await subItem.save();

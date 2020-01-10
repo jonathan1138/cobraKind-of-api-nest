@@ -10,8 +10,8 @@ export class GenreService {
         private genreRepository: GenreRepository,
     ) {}
 
-    async allGenres(): Promise<Genre[]> {
-        return this.genreRepository.allGenres();
+    async allGenres(page: number = 1): Promise<Genre[]> {
+        return this.genreRepository.allGenres(page);
     }
 
     async allExchanges(): Promise<Genre[]> {

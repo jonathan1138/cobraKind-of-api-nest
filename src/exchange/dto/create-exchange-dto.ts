@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsArray, IsInt, Min, Max } from 'class-validator';
 import { Genre } from 'src/exchange-genre/genre.entity';
 import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
 
@@ -22,8 +22,16 @@ export class CreateExchangeDto {
     images: string[];
 
     @IsOptional()
-    @IsNumber()
+    // @IsInt()
+    // @Min(4)
+    // @Max(4)
     year: number;
+
+    @IsOptional()
+    // @IsInt()
+    // @Min(4)
+    // @Max(4)
+    era: string;
 
     @IsOptional()
     @IsString()

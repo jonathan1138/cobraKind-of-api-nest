@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
 
 export class CreatePartDto {
     @IsNotEmpty()
@@ -14,8 +14,10 @@ export class CreatePartDto {
     images: string[];
 
     @IsOptional()
-    @IsNumber()
     year: number;
+
+    @IsOptional()
+    era: string;
 
     @IsOptional()
     @IsString()

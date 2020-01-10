@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import { integer } from 'aws-sdk/clients/cloudfront';
 
 export class CreateSubItemDto {
     @IsNotEmpty()
@@ -14,8 +15,10 @@ export class CreateSubItemDto {
     images: string[];
 
     @IsOptional()
-    @IsNumber()
-    year: number;
+    year: integer;
+
+    @IsOptional()
+    era: string;
 
     @IsOptional()
     @IsString()

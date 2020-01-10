@@ -10,6 +10,8 @@ import { PostEntity } from '../post/post.entity';
 import { UserIp } from 'src/user-ip-for-views/userIp.entity';
 import { ListingRating } from '../exchange-listing-rating/listing-rating.entity';
 import { PriceRatingInfo } from '../exchange-price-rating-info/price-rating-info.entity';
+import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
 
 @Entity()
 @Unique(['name'])
@@ -34,12 +36,6 @@ export class Exchange extends BaseEntity {
 
     @Column('simple-array', { default: '' })
     images: string[];
-
-    @Column({nullable: true})
-    year: number;
-
-    @Column()
-    manufacturer: string;
 
     @Column({ default: 0 })
     watchCount: number;
@@ -78,7 +74,7 @@ export class Exchange extends BaseEntity {
     @JoinTable()
     userIpExchanges: UserIp[];
 
-    @OneToMany((type) => ListingRating, (listingRating) => listingRating.exchange)
+    @OneToMany(() => ListingRating, (listingRating) => listingRating.exchange)
     public listingRatings!: ListingRating[];
 
     @OneToOne(() => PriceRatingInfo, { // profile => profile.user,
@@ -88,4 +84,10 @@ export class Exchange extends BaseEntity {
     })
     @JoinColumn()
     priceRatingInfo: PriceRatingInfo;
+
+    @ManyToOne(() => Manufacturer, manufacturer => manufacturer.exchanges, { eager: true, cascade: true } )
+    manufacturer: Manufacturer;
+
+    @ManyToOne(() => YearCreated, yearCreated => yearCreated.exchanges, { eager: true, cascade: true } )
+    yearCreated: YearCreated;
 }

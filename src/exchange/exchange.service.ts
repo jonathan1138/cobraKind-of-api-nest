@@ -18,6 +18,12 @@ import { UserIp } from '../user-ip-for-views/userIp.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { ProfileService } from 'src/user-profile/profile.service';
+import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
+import { YearCreatedRepository } from 'src/exchange-year/year.repository';
+import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import e = require('express');
+import { create } from 'domain';
 
 @Injectable()
 export class ExchangeService {
@@ -32,6 +38,10 @@ export class ExchangeService {
         private genreRepository: GenreRepository,
         @InjectRepository(SubVariationRepository)
         private subVariationRepository: SubVariationRepository,
+        @InjectRepository(ManufacturerRepository)
+        private manufacturerRepository: ManufacturerRepository,
+        @InjectRepository(YearCreatedRepository)
+        private yearRepository: YearCreatedRepository,
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
@@ -95,7 +105,23 @@ export class ExchangeService {
 
     async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, userId: string,
                          images?: object[], filenameInPath?: boolean): Promise<Exchange> {
+        let newYear = new YearCreated();
+        let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
+        const foundYear = await this.yearRepository.checkYearByName(createExchangeDto.year);
+        const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createExchangeDto.manufacturer);
+        if (foundYear) {
+            newYear = foundYear;
+        } else {
+            const {year, era } = createExchangeDto;
+            newYear.year = year;
+            newYear.era = era;
+        }
+        if (foundManufacturer) {
+            newManufacturer = foundManufacturer;
+        } else {
+            newManufacturer.name = createExchangeDto.name;
+        }
         const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
         const processType = 'CREATE';
@@ -116,7 +142,9 @@ export class ExchangeService {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
                 createExchangeDto.images = s3ImageArray;
             }
-            const created = await this.exchangeRepository.createExchange(createExchangeDto, market, processedGenres, processedSubVars);
+            const created = await this.exchangeRepository.createExchange(
+                createExchangeDto, market, newYear, newManufacturer, processedGenres, processedSubVars,
+            );
             this.profileService.updateCreatedExchanges(userId, created);
             return created;
         } else {
@@ -173,14 +201,15 @@ export class ExchangeService {
         return exchange;
     }
 
-    async uploadExchangeImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
+    async uploadExchangeImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
         if (image) {
-            const market = await this.exchangeRepository.getExchangeById(id);
-            if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
-                market.images.push(s3ImgUrl);
-                await market.save();
-            }
+            const exchange = await this.exchangeRepository.getExchangeById(id);
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
+            s3ImgUrlArray.forEach(item => {
+                exchange.images.push(item);
+            });
+            await exchange.save();
+            return exchange.images;
         } else {
             throw new NotAcceptableException(`File not found`);
         }

@@ -6,14 +6,13 @@ import { GenreRepository } from '../exchange-genre/genre.repository';
 import { ExchangeRepository } from 'src/exchange/exchange.repository';
 import { MarketRepository } from 'src/market/market.repository';
 import { CategoryRepository } from 'src/category/category.repository';
-import { ManufacturerController } from './manufacturer.controller';
-import { ManufacturerService } from './manufacturer.service';
-import { ManufacturerRepository } from './manufacturer.repository';
+import { YearCreatedController } from './year.controller';
+import { YearCreatedService } from './year.service';
+import { YearCreatedRepository } from './year.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature(
-    [ManufacturerRepository, CategoryRepository, MarketRepository, GenreRepository, ExchangeRepository]), AuthModule],
-  controllers: [ManufacturerController],
-  providers: [ManufacturerService, S3UploadService],
+  imports: [TypeOrmModule.forFeature([YearCreatedRepository, CategoryRepository, MarketRepository, GenreRepository, ExchangeRepository]), AuthModule],
+  controllers: [YearCreatedController],
+  providers: [YearCreatedService, S3UploadService],
 })
-export class ManufacturerModule {}
+export class YearCreatedModule {}

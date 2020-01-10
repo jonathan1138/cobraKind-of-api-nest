@@ -9,6 +9,10 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Part } from './part.entity';
 import { CreatePartDto } from './dto/create-part.dto';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { YearCreated } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
+import { YearCreatedRepository } from 'src/exchange-year/year.repository';
 
 @Injectable()
 export class PartService {
@@ -17,6 +21,10 @@ export class PartService {
         private marketRepository: MarketRepository,
         @InjectRepository(PartRepository)
         private partRepository: PartRepository,
+        @InjectRepository(ManufacturerRepository)
+        private manufacturerRepository: ManufacturerRepository,
+        @InjectRepository(YearCreatedRepository)
+        private yearRepository: YearCreatedRepository,
         private readonly s3UploadService: S3UploadService,
     ) {}
 
@@ -33,7 +41,23 @@ export class PartService {
     }
 
     async createPart(createPartDto: CreatePartDto, marketId: string, images?: object[], filenameInPath?: boolean): Promise<Part> {
+        let newYear = new YearCreated();
+        let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
+        const foundYear = await this.yearRepository.checkYearByName(createPartDto.year);
+        const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createPartDto.manufacturer);
+        if (foundYear) {
+            newYear = foundYear;
+        } else {
+            const {year, era } = createPartDto;
+            newYear.year = year;
+            newYear.era = era;
+        }
+        if (foundManufacturer) {
+            newManufacturer = foundManufacturer;
+        } else {
+            newManufacturer.name = createPartDto.name;
+        }
         const isPartNameUnique = await this.partRepository.isNameUnique(createPartDto.name);
 
         if ( isPartNameUnique ) {
@@ -41,7 +65,7 @@ export class PartService {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.PART_IMG_FOLDER, filenameInPath);
                 createPartDto.images = s3ImageArray;
             }
-            return this.partRepository.createPart(createPartDto, market);
+            return this.partRepository.createPart(createPartDto, market, newYear, newManufacturer);
         } else {
             throw new ConflictException('Part already exists');
         }

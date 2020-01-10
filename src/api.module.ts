@@ -21,11 +21,14 @@ import { BasketModule } from './basket/basket.module';
 import { PriceRatingInfoModule } from './exchange-price-rating-info/price-rating-info.module';
 import { HomeModule } from './home/home.module';
 import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.module';
+import { YearCreatedModule } from './exchange-year/year.module';
+import { ManufacturerModule } from './exchange-manufacturer/manufacturer.module';
 
 @Module({
   imports: [HomeModule, AuthModule, UserModule, CategoryModule, MarketModule, MarketShapeModule,
     TagModule, BasketModule, PriceRatingInfoModule, ProfileModule, ExchangeModule, GenreModule,
-    SubVariationModule, PartModule, SubItemModule, SubModModule, PostModule, ListingRatingModule, FileReaderModule],
+    SubVariationModule, PartModule, SubItemModule, SubModModule, PostModule, ListingRatingModule,
+    FileReaderModule, YearCreatedModule, ManufacturerModule],
   providers: [
     // {
     //   provide: APP_FILTER,
@@ -38,6 +41,6 @@ import { FileReaderModule } from './shared/services/csvFileReaders/fileReader.mo
   ],
   exports: [AuthModule, UserModule, CategoryModule, MarketModule, SubItemModule, SubModModule,
     ListingRatingModule, BasketModule, MarketShapeModule, TagModule, ProfileModule, ExchangeModule, GenreModule,
-    SubVariationModule, PartModule, PostModule, PriceRatingInfoModule, FileReaderModule],
+    SubVariationModule, PartModule, PostModule, PriceRatingInfoModule, FileReaderModule, YearCreatedModule, ManufacturerModule],
 })
 export class ApiModule {}

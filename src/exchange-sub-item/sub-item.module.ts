@@ -7,9 +7,12 @@ import { ExchangeRepository } from 'src/exchange/exchange.repository';
 import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from '../user-ip-for-views/userIp.entity';
+import { YearCreatedRepository } from '../exchange-year/year.repository';
+import { ManufacturerRepository } from '../exchange-manufacturer/manufacturer.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ExchangeRepository, SubItemRepository, UserRepository, UserIp]) ],
+  imports: [TypeOrmModule.forFeature([ExchangeRepository, SubItemRepository, UserRepository, UserIp,
+    YearCreatedRepository, ManufacturerRepository]) ],
   controllers: [SubItemController],
   providers: [SubItemService, S3UploadService],
 })
