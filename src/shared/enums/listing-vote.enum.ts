@@ -1,4 +1,4 @@
-export enum ListingRating {
-    UP = 'upvote',
-    DOWN = 'downvote',
+export enum ListingVote {
+    LIKE = 'LIKE',
+    DISLIKE = 'DISLIKE',
 }

@@ -24,6 +24,7 @@ import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
 import { YearCreated } from 'src/exchange-year/year.entity';
 import e = require('express');
 import { create } from 'domain';
+import { ListingVote } from 'src/shared/enums/listing-vote.enum';
 
 @Injectable()
 export class ExchangeService {
@@ -67,8 +68,8 @@ export class ExchangeService {
             }
             if ( !exchange.userIpExchanges.find(x => x.ipAddress === ipAddress) ) {
                 exchange.userIpExchanges.push(userIp);
-                await exchange.save();
                 this.exchangeRepository.incrementView(id);
+                return await exchange.save();
             }
         }
         delete exchange.userIpExchanges;
@@ -120,7 +121,7 @@ export class ExchangeService {
         if (foundManufacturer) {
             newManufacturer = foundManufacturer;
         } else {
-            newManufacturer.name = createExchangeDto.name;
+            newManufacturer.name = createExchangeDto.manufacturer;
         }
         const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
@@ -195,10 +196,18 @@ export class ExchangeService {
     async updateExchangeVariations(id: string, subVariations: SubVariation[] ): Promise<Exchange> {
         const exchange = await this.exchangeRepository.getExchangeById(id);
         const processType = 'UPDATE';
-        const processedVars = await this.processGenres(exchange.marketId, subVariations, processType);
+        const processedVars = await this.processSubVariations(exchange.marketId, subVariations, processType);
         exchange.subVariations = processedVars;
         await exchange.save();
         return exchange;
+    }
+
+    async updateExchange(id: string, createExchangeDto: CreateExchangeDto): Promise<void> {
+        if ( createExchangeDto.name || createExchangeDto.info || createExchangeDto.manufacturer || createExchangeDto.year ) {
+          return this.exchangeRepository.updateExchange(id, createExchangeDto);
+        } else {
+          throw new NotAcceptableException(`Update details not provided`);
+        }
     }
 
     async uploadExchangeImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
@@ -280,7 +289,7 @@ export class ExchangeService {
         return newVars;
     }
 
-    async watchExchange(id: string, userId: string): Promise<void> {
+    async watchExchange(id: string, userId: string): Promise<Exchange> {
         const exch = await this.exchangeRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedExchanges']});
         const isntWatched = user.profile.watchedExchanges.findIndex(exchange => exchange.id === id) < 0;
@@ -288,11 +297,11 @@ export class ExchangeService {
           user.profile.watchedExchanges.push(exch);
           exch.watchCount++;
           await this.userRepository.save(user);
-          await this.exchangeRepository.save(exch);
+          return await this.exchangeRepository.save(exch);
      }
     }
 
-    async unWatchExchange(id: string, userId: string): Promise<void> {
+    async unWatchExchange(id: string, userId: string): Promise<Exchange> {
         const exch = await this.exchangeRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedExchanges']});
         const deleteIndex = user.profile.watchedExchanges.findIndex(exchange => exchange.id === id);
@@ -300,7 +309,20 @@ export class ExchangeService {
             user.profile.watchedExchanges.splice(deleteIndex, 1);
             exch.watchCount--;
             await this.userRepository.save(user);
-            await this.exchangeRepository.save(exch);
+            return this.exchangeRepository.save(exch);
+        }
+    }
+
+    async updateVote(id: string, ipAddress: string, vote: ListingVote, voteComment: string ): Promise<void> {
+        const exchange =  await this.exchangeRepository.getExchangeByIdWithIp(id);
+        if (exchange) {
+            if (vote === ListingVote.LIKE) {
+                this.exchangeRepository.incrementLike(id);
+            } else {
+                if (exchange.likes > 0) {
+                    this.exchangeRepository.decrementLike(id);
+                }
+            }
         }
     }
 

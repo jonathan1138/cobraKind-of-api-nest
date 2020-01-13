@@ -1,6 +1,8 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsInt, Min, Max } from 'class-validator';
 import { Genre } from 'src/exchange-genre/genre.entity';
 import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
+import { Transform } from 'class-transformer';
+import { max } from 'rxjs/operators';
 
 export class CreateExchangeDto {
     @IsNotEmpty()
@@ -22,15 +24,15 @@ export class CreateExchangeDto {
     images: string[];
 
     @IsOptional()
-    // @IsInt()
-    // @Min(4)
-    // @Max(4)
+    // @Transform(parseInt)
+    @Transform(value => Number.isNaN(+value) ? 0 : +value)
+    @IsInt()
+    @Min(1)
+    @Max(2035)
     year: number;
 
     @IsOptional()
-    // @IsInt()
-    // @Min(4)
-    // @Max(4)
+    @IsString()
     era: string;
 
     @IsOptional()

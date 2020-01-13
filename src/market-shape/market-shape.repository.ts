@@ -12,7 +12,6 @@ export class MarketShapeRepository extends Repository<MarketShape> {
             namingConvention, partsConvention, setConvention,
             subExchangeType, subVariationConvention, subItemConvention,
             subModConvention } = marketShapeDto;
-
         market.marketShape.namingConvention = namingConvention;
         market.marketShape.partsConvention = partsConvention;
         market.marketShape.setConvention = setConvention;
@@ -20,7 +19,6 @@ export class MarketShapeRepository extends Repository<MarketShape> {
         market.marketShape.subVariationConvention = subVariationConvention;
         market.marketShape.subItemConvention = subItemConvention;
         market.marketShape.subModConvention = subModConvention;
-
         try {
             await market.save();
          } catch (error) {

@@ -34,8 +34,8 @@ export class YearCreatedRepository extends Repository<YearCreated> {
     }
 
     async checkYearByName(year: number): Promise<YearCreated> {
-        const query = this.createQueryBuilder('year');
-        query.andWhere('year.year = :year', { year });
+        const query = this.createQueryBuilder('year')
+        .andWhere('year.year = :year', { year });
         const found = await query.getOne();
         return found;
     }

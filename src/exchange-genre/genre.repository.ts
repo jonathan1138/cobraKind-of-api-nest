@@ -1,6 +1,8 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { Genre } from './genre.entity';
-import { Logger, NotAcceptableException } from '@nestjs/common';
+import { Logger, NotAcceptableException, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
+import { ListingStatus } from 'src/shared/enums/listing-status.enum';
+import { CreateGenreDto } from './dto/create-genre-dto';
 
 @EntityRepository(Genre)
 export class GenreRepository extends Repository<Genre> {
@@ -24,12 +26,16 @@ export class GenreRepository extends Repository<Genre> {
         }
     }
 
-    async allExchanges(): Promise<Genre[]> {
+    async allExchanges(page: number = 1): Promise<Genre[]> {
         // return await this.find({select: ['name'], relations: ['exchanges']});
-        return await this.createQueryBuilder('genre')
-        .leftJoinAndSelect('genre.exchanges', 'exchange')
-        .select(['genre.name', 'genre.marketId', 'exchange.id', 'exchange.name'])
-        .getMany();
+        const query = this.createQueryBuilder('genre')
+        .leftJoinAndSelect('genre.exchanges', 'exchange');
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        return await query.orderBy('genre.name', 'ASC').getMany();
+        // .select(['genre.name', 'genre.marketId', 'exchange.id', 'exchange.name'])
     }
 
     async exchangesByGenres(ids: string[]): Promise<Genre[]> {
@@ -48,8 +54,8 @@ export class GenreRepository extends Repository<Genre> {
     }
 
     async genresByMarket(id: string): Promise<Genre[]> {
-        const query = this.createQueryBuilder('genre');
-        query.andWhere('genre.marketId = :id', { id });
+        const query = this.createQueryBuilder('genre')
+        .andWhere('genre.marketId = :id', { id });
         try {
             const found = await query.getMany();
             return found;
@@ -60,14 +66,50 @@ export class GenreRepository extends Repository<Genre> {
     }
 
     async genresByName(name: string): Promise<Genre> {
-        const query = this.createQueryBuilder('genre');
-        query.andWhere('genre.name = :name', { name });
+        const query = this.createQueryBuilder('genre')
+        .andWhere('genre.name = :name', { name });
         try {
             const found = await query.getOne();
             return found;
         } catch (error) {
            // this.logger.error(`Invalid Genre Supplied`, error.stack);
             throw new NotAcceptableException('Invalid Genre Supplied');
+        }
+    }
+
+    async genresById(id: string): Promise<Genre> {
+        const query = this.createQueryBuilder('genre')
+        .andWhere('genre.id = :id', { id })
+        .leftJoinAndSelect('genre.exchanges', 'exchange');
+        try {
+            const found = await query.getOne();
+            if (found) {
+                return found;
+            } else {
+                throw new NotFoundException(`Genre with ID ${id} not found`);
+            }
+        } catch (error) {
+           // this.logger.error(`Invalid Genre Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Genre Supplied');
+        }
+    }
+
+    async createGenre(createGenreDto: CreateGenreDto, marketId: string): Promise<Genre> {
+        const genre = new Genre();
+        genre.name = createGenreDto.name.replace(/,/g, ' ');
+        genre.marketId = marketId;
+        genre.status = ListingStatus.TO_REVIEW;
+        try {
+            await genre.save();
+            return genre;
+        } catch (error) {
+            if (error.code === '23505') { // duplicate cat name
+                this.logger.error(`Failed to create a Genre`, error.stack);
+                throw new ConflictException('Name for Genre already exists');
+            } else {
+                this.logger.error(`Failed to create a genre`, error.stack);
+                throw new InternalServerErrorException();
+            }
         }
     }
 }

@@ -71,15 +71,15 @@ export class UserRepository extends Repository<UserEntity> {
         if (search) {
             query.where('(user_entity.name LIKE :search)', { search: `%${search}%` });
         }
-        query.leftJoinAndSelect('user_entity.profile', 'profile');
-        query.leftJoinAndSelect('profile.watchedTags', 'tag');
-        query.leftJoinAndSelect('profile.watchedMarkets', 'market');
-        query.leftJoinAndSelect('profile.watchedExchanges', 'exchange');
-        query.leftJoinAndSelect('user_entity.listingRatings', 'listingRating');
-        query.leftJoinAndSelect('user_entity.posts', 'posts');
+        query.leftJoinAndSelect('user_entity.profile', 'profile')
+        .leftJoinAndSelect('profile.watchedTags', 'tag')
+        .leftJoinAndSelect('profile.watchedMarkets', 'market')
+        .leftJoinAndSelect('profile.watchedExchanges', 'exchange')
+        .leftJoinAndSelect('user_entity.listingRatings', 'listingRating')
+        .leftJoinAndSelect('user_entity.posts', 'posts');
         if (page > 0) {
-            query.take(15);
-            query.skip(15 * (page - 1));
+            query.take(15)
+            .skip(15 * (page - 1));
         }
         query.orderBy('user_entity.name', 'ASC');
         try {

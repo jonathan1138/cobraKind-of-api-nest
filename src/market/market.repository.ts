@@ -65,8 +65,8 @@ export class MarketRepository extends Repository<Market> {
     }
 
     async getTags(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
-        const query = this.buildQuery(filterDto, page);
-        query.leftJoinAndSelect('market.tags', 'tag');
+        const query = this.buildQuery(filterDto, page)
+        .leftJoinAndSelect('market.tags', 'tag');
         try {
             const markets = await query.getMany();
             return markets;
@@ -77,8 +77,8 @@ export class MarketRepository extends Repository<Market> {
     }
 
     async getTagsByCatId(id: string, filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Market[]> {
-        const query = this.buildQuery(filterDto, page);
-        query.andWhere('market.categoryId = :id', {id});
+        const query = this.buildQuery(filterDto, page)
+        .andWhere('market.categoryId = :id', {id});
         try {
             const markets = await query.getMany();
             return markets;
@@ -90,24 +90,20 @@ export class MarketRepository extends Repository<Market> {
 
     async getMarketsByCategory(filterDto: StatusAndSearchFilterDto, categoryId: string, page: number = 1): Promise<Market[]> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('market');
-        query.leftJoinAndSelect('market.tags', 'tag');
-        query.andWhere('market.categoryId = :categoryId', { categoryId });
+        const query = this.createQueryBuilder('market')
+        .leftJoinAndSelect('market.tags', 'tag')
+        .andWhere('market.categoryId = :categoryId', { categoryId });
         if (page > 0) {
             query.take(15);
             query.skip(15 * (page - 1));
         }
-        query.orderBy('market.name', 'ASC');
-
         if (status) {
             query.andWhere('market.status = :status', { status });
         }
-
         if (search) {
             query.andWhere('(market.name LIKE :search OR market.info LIKE :search)', { search: `%${search}%` });
         }
-
-        const markets = await query.getMany();
+        const markets = await query.orderBy('market.name', 'ASC').getMany();
         if (markets.length < 1) {
             throw new NotFoundException('Category Not found');
         }
@@ -116,8 +112,8 @@ export class MarketRepository extends Repository<Market> {
 
     private buildQuery(filterDto: StatusAndSearchFilterDto, page: number) {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('market');
-        query.leftJoinAndSelect('market.tags', 'tag');
+        const query = this.createQueryBuilder('market')
+        .leftJoinAndSelect('market.tags', 'tag');
         if (status) {
             query.andWhere('market.status = :status', { status });
         }
@@ -128,8 +124,7 @@ export class MarketRepository extends Repository<Market> {
             query.take(15);
             query.skip(15 * (page - 1));
         }
-        query.orderBy('market.name', 'ASC');
-        return query;
+        return query.orderBy('market.name', 'ASC');
     }
 
     async createMarket(createMarketDto: CreateMarketDto, category: Category, tags: Tag[]): Promise<Market> {

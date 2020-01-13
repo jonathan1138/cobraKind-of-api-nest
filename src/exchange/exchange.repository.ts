@@ -17,9 +17,9 @@ export class ExchangeRepository extends Repository<Exchange> {
     private logger = new Logger('ExchangeRepository');
 
     async getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto, page);
+        const query = this.buildQuery(filterDto, page)
         // query.leftJoinAndMapOne('exchange.market', Market, 'market', 'market.id = exchange.marketId');
-        query.leftJoinAndSelect('exchange.market', 'market');
+        .leftJoinAndSelect('exchange.market', 'market');
         try {
             const exchanges = await query.getMany();
             // sucks but whatever
@@ -39,9 +39,9 @@ export class ExchangeRepository extends Repository<Exchange> {
 
     async getExchangesByMarket(filterDto: StatusAndSearchFilterDto, marketId: string): Promise<Exchange[]> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('exchange');
-        query.leftJoinAndSelect('exchange.genres', 'genre');
-        query.andWhere('exchange.marketId = :marketId', { marketId });
+        const query = this.createQueryBuilder('exchange')
+        .leftJoinAndSelect('exchange.genres', 'genre')
+        .andWhere('exchange.marketId = :marketId', { marketId });
 
         if (status) {
             query.andWhere('exchange.status = :status', { status });
@@ -76,10 +76,9 @@ export class ExchangeRepository extends Repository<Exchange> {
     }
 
     async getSubItemsByExchangeId(filterDto: StatusAndSearchFilterDto, exchangeId: string): Promise<Exchange> {
-        const query = this.buildQuery(filterDto);
-        query.leftJoinAndSelect('exchange.subItems', 'subItem');
-        query.andWhere('exchange.id = :exchangeId', {exchangeId});
-
+        const query = this.buildQuery(filterDto)
+        .leftJoinAndSelect('exchange.subItems', 'subItem')
+        .andWhere('exchange.id = :exchangeId', {exchangeId});
         const exchange = await query.getOne();
         if (!exchange) {
             throw new NotFoundException('Exchange Not found');
@@ -88,10 +87,15 @@ export class ExchangeRepository extends Repository<Exchange> {
     }
 
     async getExchangeById(id: string): Promise<Exchange> {
-        const found = await this.findOne(id);
+        const found = await this.findOne(id, {relations: ['market']});
         if (!found) {
             throw new NotFoundException('Exchange Not found');
         }
+        // Object.entries(found.market).forEach(([key]) => {
+        //     if (key !== 'name') {
+        //         delete found.market[key];
+        //     }
+        // });
         return found;
     }
 
@@ -100,12 +104,17 @@ export class ExchangeRepository extends Repository<Exchange> {
         if (!found) {
             throw new NotFoundException('Exchange Not found');
         }
+        // Object.entries(found.market).forEach(([key]) => {
+        //     if (key !== 'name') {
+        //         delete found.market[key];
+        //     }
+        // });
         return found;
     }
 
     async getGenres(filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto);
-        query.leftJoinAndSelect('exchange.genres', 'genre');
+        const query = this.buildQuery(filterDto)
+        .leftJoinAndSelect('exchange.genres', 'genre');
         try {
             const exchanges = await query.getMany();
             return exchanges;
@@ -116,8 +125,8 @@ export class ExchangeRepository extends Repository<Exchange> {
     }
 
     async getVariations(filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto);
-        query.leftJoinAndSelect('exchange.variations', 'variation');
+        const query = this.buildQuery(filterDto)
+        .leftJoinAndSelect('exchange.variations', 'variation');
         try {
             const exchanges = await query.getMany();
             return exchanges;
@@ -128,8 +137,8 @@ export class ExchangeRepository extends Repository<Exchange> {
     }
 
     async getGenresByMktId(id: string, filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto);
-        query.andWhere('exchange.marketId = :id', {id});
+        const query = this.buildQuery(filterDto)
+        .andWhere('exchange.marketId = :id', {id});
         try {
             const exchanges = await query.getMany();
             return exchanges;
@@ -140,8 +149,8 @@ export class ExchangeRepository extends Repository<Exchange> {
     }
 
     async getVarsByMktId(id: string, filterDto: StatusAndSearchFilterDto): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto);
-        query.andWhere('exchange.marketId = :id', {id});
+        const query = this.buildQuery(filterDto)
+        .andWhere('exchange.marketId = :id', {id});
         try {
             const exchanges = await query.getMany();
             return exchanges;
@@ -153,9 +162,11 @@ export class ExchangeRepository extends Repository<Exchange> {
 
     private buildQuery(filterDto: StatusAndSearchFilterDto, page?: number) {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('exchange');
-        query.leftJoinAndSelect('exchange.genres', 'genre');
-        query.leftJoinAndSelect('exchange.subVariations', 'subVariation');
+        const query = this.createQueryBuilder('exchange')
+        .leftJoinAndSelect('exchange.genres', 'genre')
+        .leftJoinAndSelect('exchange.yearCreated', 'yearCreated')
+        .leftJoinAndSelect('exchange.manufacturer', 'manufacturer')
+        .leftJoinAndSelect('exchange.subVariations', 'subVariation');
         if (status) {
             query.andWhere('exchange.status = :status', { status });
         }
@@ -206,6 +217,21 @@ export class ExchangeRepository extends Repository<Exchange> {
         }
     }
 
+    async updateExchange(id: string, createExchangeDto: CreateExchangeDto ): Promise<void> {
+        const exchange = await this.getExchangeById(id);
+        const { name, info, manufacturer, year, era } = createExchangeDto;
+        exchange.name = name;
+        exchange.info = info;
+        exchange.yearCreated.year = year;
+        exchange.yearCreated.era = era;
+        exchange.manufacturer.name = manufacturer;
+        try {
+            await exchange.save();
+         } catch (error) {
+            throw new InternalServerErrorException('Failed to update Exchange. Check with administrator');
+        }
+    }
+
     async isNameUnique(name: string): Promise<boolean> {
         const query = this.createQueryBuilder('exchange').where('exchange.name = :name', { name });
         try {
@@ -234,6 +260,14 @@ export class ExchangeRepository extends Repository<Exchange> {
         .update(Exchange)
         .where({id})
         .set({ likes: () => 'likes + 1' })
+        .execute();
+    }
+
+    async decrementLike(id: string): Promise<void> {
+        await this.createQueryBuilder()
+        .update(Exchange)
+        .where({id})
+        .set({ likes: () => 'likes - 1' })
         .execute();
     }
 }

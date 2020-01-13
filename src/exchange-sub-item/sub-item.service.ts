@@ -54,8 +54,8 @@ export class SubItemService {
           }
           if ( !subItem.userIpSubItems.find(x => x.ipAddress === ipAddress) ) {
               subItem.userIpSubItems.push(userIp);
-              await subItem.save();
               this.subItemRepository.incrementView(id);
+              return await subItem.save();
           }
       }
       delete subItem.userIpSubItems;
@@ -149,7 +149,7 @@ export class SubItemService {
         return arrayImages;
     }
 
-    async watchSubItem(id: string, userId: string): Promise<void> {
+    async watchSubItem(id: string, userId: string): Promise<SubItem> {
         const sItem = await this.subItemRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedSubItems']});
         const isntWatched = user.profile.watchedSubItems.findIndex(subItem => subItem.id === id) < 0;
@@ -157,11 +157,11 @@ export class SubItemService {
           user.profile.watchedSubItems.push(sItem);
           sItem.watchCount++;
           await this.userRepository.save(user);
-          await this.subItemRepository.save(sItem);
+          return await this.subItemRepository.save(sItem);
      }
     }
 
-    async unWatchSubItem(id: string, userId: string): Promise<void> {
+    async unWatchSubItem(id: string, userId: string): Promise<SubItem> {
         const sItem = await this.subItemRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedSubItems']});
         const deleteIndex = user.profile.watchedSubItems.findIndex(subItem => subItem.id === id);
@@ -169,7 +169,7 @@ export class SubItemService {
             user.profile.watchedSubItems.splice(deleteIndex, 1);
             sItem.watchCount--;
             await this.userRepository.save(user);
-            await this.exchangeRepository.save(sItem);
+            return await this.subItemRepository.save(sItem);
         }
     }
 

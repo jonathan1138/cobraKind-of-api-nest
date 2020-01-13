@@ -25,17 +25,14 @@ export class PostRepository extends Repository<PostEntity> {
 
     async getPostsByExchange(filterDto: StatusAndSearchFilterDto, exchangeId: string): Promise<PostEntity[]> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('post');
-        query.andWhere('post.exchange.id = :exchangeId', { exchangeId });
-
+        const query = this.createQueryBuilder('post')
+        .andWhere('post.exchange.id = :exchangeId', { exchangeId });
         if (status) {
             query.andWhere('post.status = :status', { status });
         }
-
         if (search) {
             query.andWhere('(post.name LIKE :search OR post.info LIKE :search)', { search: `%${search}%` });
         }
-
         const posts = await query.getMany();
         if (posts.length < 1) {
             throw new NotFoundException('Exchange Not found');
@@ -44,10 +41,9 @@ export class PostRepository extends Repository<PostEntity> {
     }
 
     async getSubItemsByPostId(filterDto: StatusAndSearchFilterDto, postId: string): Promise<PostEntity> {
-        const query = this.buildQuery(filterDto);
-        query.leftJoinAndSelect('post.subItems', 'subItem');
-        query.andWhere('post.id = :postId', {postId});
-
+        const query = this.buildQuery(filterDto)
+        .leftJoinAndSelect('post.subItems', 'subItem')
+        .andWhere('post.id = :postId', {postId});
         const post = await query.getOne();
         if (!post) {
             throw new NotFoundException('Post Not found');
@@ -73,9 +69,9 @@ export class PostRepository extends Repository<PostEntity> {
 
     private buildQuery(filterDto: StatusAndSearchFilterDto) {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('post');
-        query.leftJoinAndSelect('post.exchange', 'exchange');
-        query.leftJoinAndSelect('post.owner', 'owner');
+        const query = this.createQueryBuilder('post')
+        .leftJoinAndSelect('post.exchange', 'exchange')
+        .leftJoinAndSelect('post.owner', 'owner');
         if (status) {
             query.andWhere('post.status = :status', { status });
         }
@@ -98,7 +94,6 @@ export class PostRepository extends Repository<PostEntity> {
         post.market = market;
         post.subItem = null;
         post.owner = user;
-
         try {
             await post.save();
             delete post.exchange;

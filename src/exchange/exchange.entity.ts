@@ -12,6 +12,7 @@ import { ListingRating } from '../exchange-listing-rating/listing-rating.entity'
 import { PriceRatingInfo } from '../exchange-price-rating-info/price-rating-info.entity';
 import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
 import { YearCreated } from 'src/exchange-year/year.entity';
+import { UserVote } from '../user-for-votes/userVote.entity';
 
 @Entity()
 @Unique(['name'])
@@ -73,6 +74,10 @@ export class Exchange extends BaseEntity {
     @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpExchanges: UserIp[];
+
+    @ManyToMany(() => UserVote, { cascade: true })
+    @JoinTable()
+    userVote: UserVote[];
 
     @OneToMany(() => ListingRating, (listingRating) => listingRating.exchange)
     public listingRatings!: ListingRating[];

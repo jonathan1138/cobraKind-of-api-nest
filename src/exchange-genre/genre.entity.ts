@@ -1,9 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable, BaseEntity } from 'typeorm';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 
 @Entity()
-export class Genre {
+export class Genre extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 

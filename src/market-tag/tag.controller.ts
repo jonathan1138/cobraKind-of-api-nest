@@ -18,6 +18,11 @@ constructor( private tagService: TagService ) {}
         return this.tagService.allTags(page);
     }
 
+    @Get('/byId/:id')
+    tagById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Tag> {
+        return this.tagService.tagsById(id);
+    }
+
     @Get('/markets')
     allMarkets(@Query('page') page: number): Promise<Tag[]> {
         return this.tagService.allMarkets(page);
@@ -33,11 +38,6 @@ constructor( private tagService: TagService ) {}
     @Get('/:name')
     tagByName(@Param('name') name: string): Promise<Tag> {
         return this.tagService.tagsByName(name);
-    }
-
-    @Get('/byId/:id')
-    tagById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Tag> {
-        return this.tagService.tagsById(id);
     }
 
     @Get('markets/:id')

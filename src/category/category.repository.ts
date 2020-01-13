@@ -42,18 +42,15 @@ export class CategoryRepository extends Repository<Category> {
 
     async getCategoryWithMarketsById(filterDto: StatusAndSearchFilterDto, categoryId: string): Promise<Category> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('category');
-        query.leftJoinAndSelect('category.markets', 'market');
-
+        const query = this.createQueryBuilder('category')
+        .leftJoinAndSelect('category.markets', 'market');
         if (status) {
             query.andWhere('category.status = :status', { status });
         }
-
         if (search) {
             query.andWhere('(category.name LIKE :search OR category.info LIKE :search)', { search: `%${search}%` });
         }
         query.andWhere('category.id = :categoryId', {categoryId});
-
         const category = await query.getOne();
         if (!category) {
             throw new NotFoundException('Category Not found');
@@ -85,7 +82,6 @@ export class CategoryRepository extends Repository<Category> {
         category.info = info;
         category.images = images;
         category.markets = [];
-
         category.status = ListingStatus.TO_REVIEW;
         try {
             await category.save();

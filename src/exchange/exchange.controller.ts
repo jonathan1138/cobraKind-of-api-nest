@@ -4,6 +4,7 @@ import { ExchangeService } from './exchange.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { Exchange } from './exchange.entity';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
+import { ListingVoteValidationPipe } from 'src/shared/pipes/listingVote-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateExchangeDto } from './dto/create-exchange-dto';
@@ -13,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { IpAddress } from 'src/shared/decorators/get-user-ip.decorator';
+import { ListingVote } from 'src/shared/enums/listing-vote.enum';
 
 // @UseGuards(AuthGuard())
 @Controller('exchange')
@@ -131,6 +133,15 @@ export class ExchangeController {
             return this.exchangeService.updateExchangeVariations(id, subVariations);
     }
 
+    @Patch('/update/:id')
+    @UseGuards(AuthGuard())
+    updateExchange(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() createExchangeDto: CreateExchangeDto,
+        ): Promise<void> {
+            return this.exchangeService.updateExchange(id, createExchangeDto);
+    }
+
     @Post('/images/:id')
     @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('image'))
@@ -147,14 +158,24 @@ export class ExchangeController {
 
     @Post('/watch/:id')
     @UseGuards(AuthGuard())
-    watch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    watch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<Exchange>  {
       return this.exchangeService.watchExchange(id, user.id);
     }
 
     @Post('/unwatch/:id')
     @UseGuards(AuthGuard())
-    unwatch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    unwatch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<Exchange>  {
       return this.exchangeService.unWatchExchange(id, user.id);
+    }
+
+    @Patch('/vote/:id')
+    @UseGuards(AuthGuard())
+    updateVote(
+        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress,
+        @Body('vote', ListingVoteValidationPipe) vote: ListingVote,
+        @Body('votecomment') voteComment?: string,
+        ): Promise<void> {
+            return this.exchangeService.updateVote(id, ipAddress, vote, voteComment);
     }
 
     // @Post('/vote/:id')

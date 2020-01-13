@@ -95,9 +95,9 @@ export class SubItemRepository extends Repository<SubItem> {
 
     async getSubItemsByExchange(filterDto: StatusAndSearchFilterDto, exchangeId: string): Promise<SubItem[]> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('subItem');
-        query.leftJoinAndSelect('subItem.exchange', 'exchange');
-        query.andWhere('subItem.exchangeId = :exchangeId', { exchangeId });
+        const query = this.createQueryBuilder('subItem')
+        .leftJoinAndSelect('subItem.exchange', 'exchange')
+        .andWhere('subItem.exchangeId = :exchangeId', { exchangeId });
 
         if (status) {
             query.andWhere('subItem.status = :status', { status });

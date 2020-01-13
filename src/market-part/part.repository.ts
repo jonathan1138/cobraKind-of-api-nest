@@ -25,9 +25,8 @@ export class PartRepository extends Repository<Part> {
 
     async getPartsByMarket(filterDto: StatusAndSearchFilterDto, marketId: string): Promise<Part[]> {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('part');
-        query.andWhere('part.marketId = :marketId', { marketId });
-
+        const query = this.createQueryBuilder('part')
+        .andWhere('part.marketId = :marketId', { marketId });
         if (status) {
             query.andWhere('part.status = :status', { status });
         }
