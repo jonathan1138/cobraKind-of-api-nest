@@ -12,11 +12,11 @@ import { PartRepository } from './part.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
 import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
 import { ManufacturerRepository } from '../exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from '../exchange-year/year.repository';
+import { CreatedYearRepository } from '../exchange-year/year.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PartRepository, CategoryRepository, MarketRepository,
-    GenreRepository, ExchangeRepository, TagRepository, SubItemRepository, YearCreatedRepository, ManufacturerRepository]), AuthModule],
+    GenreRepository, ExchangeRepository, TagRepository, SubItemRepository, CreatedYearRepository, ManufacturerRepository]), AuthModule],
   controllers: [PartController],
   providers: [PartService, S3UploadService],
 })

@@ -6,7 +6,7 @@ import { Part } from '../market-part/part.entity';
 import { SubMod } from 'src/exchange-sub-mod/sub-mod.entity';
 
 @Entity()
-export class YearCreated extends BaseEntity {
+export class CreatedYear extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -16,15 +16,15 @@ export class YearCreated extends BaseEntity {
     @Column({unique: true})
     year: integer;
 
-    @OneToMany(() => Exchange, exchange => exchange.yearCreated)
+    @OneToMany(() => Exchange, exchange => exchange.createdYear)
     exchanges: Exchange[];
 
-    @OneToMany(() => SubItem, subItem => subItem.yearCreated)
+    @OneToMany(() => SubItem, subItem => subItem.createdYear)
     subItems: SubItem[];
 
-    @OneToMany(() => Part, part => part.yearCreated)
+    @OneToMany(() => Part, part => part.createdYear)
     parts: Part[];
 
-    @OneToMany(() => SubMod, subMod => subMod.yearCreated)
+    @OneToMany(() => SubMod, subMod => subMod.createdYear)
     subMods: SubMod[];
 }

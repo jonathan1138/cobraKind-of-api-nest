@@ -60,8 +60,8 @@ export class TagService {
                 case ListingStatus.REJECTED:
                   tag.statusNote = ListingStatusNote.REJECTED;
                   break;
-                // default:
-                //   tag.statusNote = ListingStatusNote.TO_REVIEW;
+                default:
+                  tag.statusNote = null;
                 }
             } else {
             tag.statusNote = statusNote;

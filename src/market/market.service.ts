@@ -12,7 +12,7 @@ import { TagRepository } from '../market-tag/tag.repository';
 import { Tag } from 'src/market-tag/tag.entity';
 import { Uuid } from 'aws-sdk/clients/groundstation';
 import { UserRepository } from 'src/user/user.repository';
-import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { ProfileService } from 'src/user-profile/profile.service';
@@ -43,7 +43,7 @@ export class MarketService {
     }
 
     async getMarketByIdIncrementView(id: string, ipAddress: string): Promise<Market> {
-        const market =  await this.marketRepository.getMarketByIdWithIps(id);
+        const market =  await this.marketRepository.getMarketByIdForViews(id);
         if (market) {
             const userIp = new UserIp();
             userIp.ipAddress = ipAddress;
@@ -53,8 +53,9 @@ export class MarketService {
             }
             if ( !market.userIpMarkets.find(x => x.ipAddress === ipAddress) ) {
                 market.userIpMarkets.push(userIp);
+                market.views++;
                 await market.save();
-                this.marketRepository.incrementView(id);
+                // this.marketRepository.incrementView(id);
             }
         }
         delete market.userIpMarkets;
@@ -135,8 +136,8 @@ export class MarketService {
                 case ListingStatus.REJECTED:
                   market.statusNote = ListingStatusNote.REJECTED;
                   break;
-                // default:
-                //   market.statusNote = ListingStatusNote.TO_REVIEW;
+                default:
+                   market.statusNote = null;
                 }
             } else {
             market.statusNote = statusNote;
@@ -148,8 +149,12 @@ export class MarketService {
     async updateMarketTags(id: string, tags: string[] ): Promise<Market> {
         const market = await this.marketRepository.getMarketById(id);
         const processType = 'UPDATE';
-        const processedTags = await this.processTags(market.categoryId, tags, processType);
-        market.tags = processedTags;
+        if (tags) {
+            const processedTags = await this.processTags(market.categoryId, tags, processType);
+            processedTags.length ? market.tags = processedTags : market.tags = [];
+        } else {
+            market.tags = [];
+        }
         await market.save();
         return market;
     }
@@ -208,7 +213,7 @@ export class MarketService {
     //     return copiedMarkets;
     // }
 
-    async watchMarket(id: string, userId: string): Promise<void> {
+    async watchMarket(id: string, userId: string): Promise<Market> {
         const mkt = await this.marketRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedMarkets']});
         const isntWatched = user.profile.watchedMarkets.findIndex(market => market.id === id) < 0;
@@ -216,11 +221,11 @@ export class MarketService {
           user.profile.watchedMarkets.push(mkt);
           mkt.watchCount++;
           await this.userRepository.save(user);
-          await this.marketRepository.save(mkt);
+          return this.marketRepository.save(mkt);
      }
     }
 
-    async unWatchMarket(id: string, userId: string): Promise<void> {
+    async unWatchMarket(id: string, userId: string): Promise<Market> {
         const mkt = await this.marketRepository.findOne({id});
         const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedMarkets']});
         const deleteIndex = user.profile.watchedMarkets.findIndex(market => market.id === id);
@@ -228,7 +233,7 @@ export class MarketService {
             user.profile.watchedMarkets.splice(deleteIndex, 1);
             mkt.watchCount--;
             await this.userRepository.save(user);
-            await this.marketRepository.save(mkt);
+            return this.marketRepository.save(mkt);
         }
     }
 }

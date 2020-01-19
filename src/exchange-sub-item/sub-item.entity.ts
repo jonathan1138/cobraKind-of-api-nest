@@ -3,11 +3,11 @@ import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique,
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { UserEntity } from '../user/entities/user.entity';
-import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { PostEntity } from 'src/post/post.entity';
 import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 
 @Entity()
 @Unique(['name'])
@@ -63,6 +63,6 @@ export class SubItem extends BaseEntity {
     @ManyToOne(() => Manufacturer, manufacturer => manufacturer.subItems, { eager: true } )
     manufacturer: Manufacturer;
 
-    @ManyToOne(() => YearCreated, yearCreated => yearCreated.subItems, { eager: true } )
-    yearCreated: YearCreated;
+    @ManyToOne(() => CreatedYear, createdYear => createdYear.subItems, { eager: true } )
+    createdYear: CreatedYear;
 }

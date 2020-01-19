@@ -11,12 +11,17 @@ import { TagService } from '../../../market-tag/tag.service';
 import { TagFileReader } from './classes/tagFileReader';
 import { CreateTagDto } from 'src/market-tag/dto/create-tag-dto';
 import { FileTagData } from './types/fileTagData';
+import { CreateExchangeDto } from 'src/exchange/dto/create-exchange-dto';
+import { ExchangeService } from 'src/exchange/exchange.service';
+import { FileExchangeData } from './types/fileExchangeData';
+import { ExchangeFileReader } from './classes/exchangeFileReader';
 @Injectable()
 export class FileReaderService {
     constructor(
         private categoryService: CategoryService,
         private marketService: MarketService,
         private tagService: TagService,
+        private exchangeService: ExchangeService,
     ) {}
     private logger = new Logger('FileReaderService');
     private userId = '260a7b48-e60a-4d0a-ac26-0d7186215542';
@@ -133,14 +138,45 @@ export class FileReaderService {
     }
 
     async importExchangeFileToDb(filename: string) {
-        const exchangeReader = CategoryFileReader.fromCsv(filename);
+        const exchangeReader = ExchangeFileReader.fromCsv(filename);
         if ( exchangeReader.load() === true ) {
-            // const summary = FileSummary.winsAnalysisWithReport('Man United');
-            // summary.buildAndPrintReport(exchangeReader.fileData);
-            // const output = await this.processExchangeFileData(exchangeReader.fileData);
+            const output = await this.processExchangeFileData(exchangeReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
+    }
+
+    async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string> {
+        let recordSuccess = 0;
+        let recordFail = 0;
+        for (const item of exchanges) {
+            // process image array
+            let imageArray = [];
+            if (item[2].length) {
+                imageArray = item[2].split('|');
+            }
+            let tagsArray = [];
+            if (item[3].length) {
+                tagsArray = item[3].split('|');
+            }
+            // const exchange: CreateExchangeDto = {
+            //         name: item[0],
+            //         info: item[1],
+            //         images: imageArray,
+            //         genres: genresArray,
+            //     };
+            // try {
+            //         const result = await this.exchangeService.createExchange(exchange, item[4], this.userId);
+            //         if (result) { recordSuccess++; }
+            //     } catch (error) {
+            //         recordFail++;
+            //         this.logger.error(`Failed to create an Exchange: `, error.stack);
+            //         // throw new InternalServerErrorException();
+            //     }
+        }
+        const report = `Processed ${recordSuccess} records successfully / ${recordFail}`;
+        Logger.log(report);
+        return report;
     }
 
     async importPartFileToDb(filename: string) {

@@ -4,7 +4,6 @@ import { ExchangeService } from './exchange.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { Exchange } from './exchange.entity';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
-import { ListingVoteValidationPipe } from 'src/shared/pipes/listingVote-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateExchangeDto } from './dto/create-exchange-dto';
@@ -14,7 +13,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { IpAddress } from 'src/shared/decorators/get-user-ip.decorator';
-import { ListingVote } from 'src/shared/enums/listing-vote.enum';
 
 // @UseGuards(AuthGuard())
 @Controller('exchange')
@@ -51,6 +49,14 @@ export class ExchangeController {
     @Get('/:id')
     getExchangeById(
         @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress): Promise<Exchange> {
+        // tslint:disable-next-line: max-line-length
+        // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
+        return this.exchangeService.getExchangeById(id);
+    }
+
+    @Get('/view/:id')
+    getExchangeByIdView(
+        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress ): Promise<Exchange> {
         // tslint:disable-next-line: max-line-length
         // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
         return this.exchangeService.getExchangeByIdIncrementView(id, ipAddress);
@@ -171,22 +177,8 @@ export class ExchangeController {
     @Patch('/vote/:id')
     @UseGuards(AuthGuard())
     updateVote(
-        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress,
-        @Body('vote', ListingVoteValidationPipe) vote: ListingVote,
-        @Body('votecomment') voteComment?: string,
-        ): Promise<void> {
-            return this.exchangeService.updateVote(id, ipAddress, vote, voteComment);
+        @Param('id', new ParseUUIDPipe()) id: string, @GetUser() user: UserEntity,
+        ): Promise<Exchange> {
+            return this.exchangeService.updateVote(user.id, id);
     }
-
-    // @Post('/vote/:id')
-    // @UseGuards(AuthGuard())
-    // upvote(@Param('id') id: string, @GetUser() user: UserEntity) {
-    //   return this.exchangeService.upvote(id, user.id);
-    // }
-
-    // @Post('/downvote/:id')
-    // @UseGuards(AuthGuard())
-    // downvote(@Param('id') id: string, @GetUser() user: UserEntity) {
-    //   return this.exchangeService.downvote(id, user.id);
-    // }
 }

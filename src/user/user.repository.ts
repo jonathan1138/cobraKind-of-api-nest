@@ -36,16 +36,16 @@ export class UserRepository extends Repository<UserEntity> {
 
         user.profile = profile;
         user.listingRatings = [];
+        user.likes = [];
         user.posts = [];
         profile.bio = null;
         profile.interests = null;
         profile.profilePhoto = null;
 
-        user.role = role;
         if (   name.localeCompare('admin') === 0 ) {
-            user.role.name = Role.ADMIN;
+            role.name = Role.ADMIN;
         } else {
-            user.role.name = Role.USER;
+            role.name = Role.USER;
         }
         user.role = role;
 

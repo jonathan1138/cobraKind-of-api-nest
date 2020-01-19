@@ -7,12 +7,11 @@ import { SubItem } from 'src/exchange-sub-item/sub-item.entity';
 import { SubMod } from 'src/exchange-sub-mod/sub-mod.entity';
 import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
 import { PostEntity } from '../post/post.entity';
-import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ListingRating } from '../exchange-listing-rating/listing-rating.entity';
 import { PriceRatingInfo } from '../exchange-price-rating-info/price-rating-info.entity';
 import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
-import { UserVote } from '../user-for-votes/userVote.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 
 @Entity()
 @Unique(['name'])
@@ -73,11 +72,7 @@ export class Exchange extends BaseEntity {
 
     @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
-    userIpExchanges: UserIp[];
-
-    @ManyToMany(() => UserVote, { cascade: true })
-    @JoinTable()
-    userVote: UserVote[];
+    userIpViews: UserIp[];
 
     @OneToMany(() => ListingRating, (listingRating) => listingRating.exchange)
     public listingRatings!: ListingRating[];
@@ -93,6 +88,6 @@ export class Exchange extends BaseEntity {
     @ManyToOne(() => Manufacturer, manufacturer => manufacturer.exchanges, { eager: true, cascade: true } )
     manufacturer: Manufacturer;
 
-    @ManyToOne(() => YearCreated, yearCreated => yearCreated.exchanges, { eager: true, cascade: true } )
-    yearCreated: YearCreated;
+    @ManyToOne(() => CreatedYear, createdYear => createdYear.exchanges, { eager: true, cascade: true } )
+    createdYear: CreatedYear;
 }

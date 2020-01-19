@@ -58,8 +58,8 @@ export class GenreService {
                 case ListingStatus.REJECTED:
                   genre.statusNote = ListingStatusNote.REJECTED;
                   break;
-                // default:
-                //   genre.statusNote = ListingStatusNote.TO_REVIEW;
+                default:
+                    genre.statusNote = null;
                 }
             } else {
             genre.statusNote = statusNote;

@@ -61,4 +61,22 @@ export class FileReaderController {
         @Body('filename') filename: string): Promise<void> {
         return this.fileReaderService.importTagFileToDb(filename);
     }
+
+    @Post('/exchange/:dest')
+    @UseGuards(AuthGuard())
+    @UseInterceptors(FileInterceptor('file', multerOptions ))
+        async uploadExchange(
+        @Param('destination') destination: string,
+        @UploadedFile() file: string): Promise<void> {
+        Logger.log(file);
+        const filename = Object.values(file)[1];
+        this.importexchangefiletodb('exchanges' + '/' + filename);
+    }
+
+    @Post('/exchange/importfiletodb')
+    @UseGuards(AuthGuard())
+    importexchangefiletodb(
+        @Body('filename') filename: string): Promise<void> {
+        return this.fileReaderService.importExchangeFileToDb(filename);
+    }
 }

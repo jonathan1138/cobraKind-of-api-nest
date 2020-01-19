@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique, OneToOne, JoinColumn, OneToMany, CreateDateColumn } from 'typeorm';
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique, OneToOne, JoinColumn,
+  OneToMany, CreateDateColumn, JoinTable, ManyToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { IsEmail } from 'class-validator';
 import { Profile } from '../../user-profile/profile.entity';
@@ -9,6 +10,7 @@ import * as jwt from 'jsonwebtoken';
 import * as config from 'config';
 import { ListingRating } from 'src/exchange-listing-rating/listing-rating.entity';
 import { Exclude } from 'class-transformer';
+import { UserLike } from 'src/user/entities/user-like.entity';
 
 @Entity()
 @Unique(['name'])
@@ -61,6 +63,10 @@ export class UserEntity extends BaseEntity {
 
     @OneToMany(() => ListingRating, (listingRating) => listingRating.user)
     listingRatings!: ListingRating[];
+
+    @ManyToMany(() => UserLike, { cascade: true, eager: true })
+    @JoinTable()
+    likes: UserLike[];
 
     toResponseObject(showToken: boolean = true): UserRO {
         const { id, created, name, token } = this;

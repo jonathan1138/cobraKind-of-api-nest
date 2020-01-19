@@ -9,10 +9,10 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Part } from './part.entity';
 import { CreatePartDto } from './dto/create-part.dto';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
 import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from 'src/exchange-year/year.repository';
+import { CreatedYearRepository } from 'src/exchange-year/year.repository';
 
 @Injectable()
 export class PartService {
@@ -23,8 +23,8 @@ export class PartService {
         private partRepository: PartRepository,
         @InjectRepository(ManufacturerRepository)
         private manufacturerRepository: ManufacturerRepository,
-        @InjectRepository(YearCreatedRepository)
-        private yearRepository: YearCreatedRepository,
+        @InjectRepository(CreatedYearRepository)
+        private yearRepository: CreatedYearRepository,
         private readonly s3UploadService: S3UploadService,
     ) {}
 
@@ -41,7 +41,7 @@ export class PartService {
     }
 
     async createPart(createPartDto: CreatePartDto, marketId: string, images?: object[], filenameInPath?: boolean): Promise<Part> {
-        let newYear = new YearCreated();
+        let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
         const foundYear = await this.yearRepository.checkYearByName(createPartDto.year);
@@ -83,17 +83,17 @@ export class PartService {
         part.status = status;
         if (!statusNote) {
             switch (part.status) {
-                case ListingStatus.TO_REVIEW:
-                  part.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  part.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   part.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   part.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   part.statusNote = ListingStatusNote.REJECTED;
                   break;
                 default:
-                  part.statusNote = ListingStatusNote.TO_REVIEW;
+                  part.statusNote = null;
                 }
             } else {
             part.statusNote = statusNote;

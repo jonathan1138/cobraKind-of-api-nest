@@ -2,7 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity } from 't
 import { Market } from 'src/market/market.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 
 @Entity()
 export class Part extends BaseEntity {
@@ -39,6 +39,6 @@ export class Part extends BaseEntity {
     @ManyToOne(() => Manufacturer, manufacturer => manufacturer.parts, { eager: true } )
     manufacturer: Manufacturer;
 
-    @ManyToOne(() => YearCreated, yearCreated => yearCreated.parts, { eager: true } )
-    yearCreated: YearCreated;
+    @ManyToOne(() => CreatedYear, createdYear => createdYear.parts, { eager: true } )
+    createdYear: CreatedYear;
 }

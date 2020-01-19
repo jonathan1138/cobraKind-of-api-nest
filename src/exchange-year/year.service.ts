@@ -1,22 +1,22 @@
 import { Injectable, NotFoundException, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { YearCreatedRepository } from './year.repository';
-import { YearCreated } from './year.entity';
+import { CreatedYearRepository } from './year.repository';
+import { CreatedYear } from './year.entity';
 import { CreateYearDto } from './dto/create-year-dto';
 
 @Injectable()
-export class YearCreatedService {
+export class CreatedYearService {
     constructor(
-        @InjectRepository(YearCreatedRepository)
-        private yearCreatedRepository: YearCreatedRepository,
+        @InjectRepository(CreatedYearRepository)
+        private createdYearRepository: CreatedYearRepository,
     ) {}
 
-    async allYears(page: number = 1): Promise<YearCreated[]> {
-        return this.yearCreatedRepository.allYears(page);
+    async allYears(page: number = 1): Promise<CreatedYear[]> {
+        return this.createdYearRepository.allYears(page);
     }
 
     async deleteYear(id: string): Promise<void> {
-        const result = await this.yearCreatedRepository.delete(id);
+        const result = await this.createdYearRepository.delete(id);
         if (result.affected === 0) {
             throw new NotFoundException(`Year with ID ${id} not found`);
         }
@@ -24,7 +24,7 @@ export class YearCreatedService {
 
     async updateYear(id: string, createYearDto: CreateYearDto): Promise<void> {
         if ( createYearDto.year ) {
-            const newYear = await this.yearCreatedRepository.getYearCreatedById(id);
+            const newYear = await this.createdYearRepository.getCreatedYearById(id);
             if (newYear) {
                 newYear.year = createYearDto.year;
                 if (createYearDto.era) {
@@ -39,7 +39,7 @@ export class YearCreatedService {
         }
     }
 
-    async createYear(createYearDto: CreateYearDto): Promise<YearCreated> {
-        return this.yearCreatedRepository.createYear(createYearDto);
+    async createYear(createYearDto: CreateYearDto): Promise<CreatedYear> {
+        return this.createdYearRepository.createYear(createYearDto);
     }
 }

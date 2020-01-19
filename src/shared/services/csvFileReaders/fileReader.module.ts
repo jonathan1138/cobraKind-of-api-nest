@@ -9,7 +9,7 @@ import { CategoryRepository } from 'src/category/category.repository';
 import { S3UploadService } from '../s3Uploader/awsS3Upload.service';
 import { TagRepository } from 'src/market-tag/tag.repository';
 import { UserRepository } from '../../../user/user.repository';
-import { UserIp } from '../../../user-ip-for-views/userIp.entity';
+import { UserIp } from '../../../user-ip-for-views/user-ip.entity';
 import { ProfileRepository } from '../../../user-profile/profile.repository';
 import { ProfileService } from '../../../user-profile/profile.service';
 import { ExchangeRepository } from '../../../exchange/exchange.repository';
@@ -19,12 +19,12 @@ import { ExchangeService } from 'src/exchange/exchange.service';
 import { GenreRepository } from '../../../exchange-genre/genre.repository';
 import { SubVariationRepository } from '../../../exchange-sub-variation/sub-variation.repository';
 import { ManufacturerRepository } from '../../../exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from '../../../exchange-year/year.repository';
+import { CreatedYearRepository } from '../../../exchange-year/year.repository';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
         UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository,
-        ManufacturerRepository, YearCreatedRepository]), AuthModule],
+        ManufacturerRepository, CreatedYearRepository]), AuthModule],
     controllers: [FileReaderController],
     providers: [FileReaderService, CategoryService, MarketService, S3UploadService, ProfileService, TagService, ExchangeService],
 })

@@ -32,7 +32,7 @@ export class MarketRepository extends Repository<Market> {
         return found;
     }
 
-    async getMarketByIdWithIps(id: string): Promise<Market> {
+    async getMarketByIdForViews(id: string): Promise<Market> {
         const found = await this.findOne(id, {relations: ['userIpMarkets']});
         if (!found) {
             throw new NotFoundException('Market Not found');

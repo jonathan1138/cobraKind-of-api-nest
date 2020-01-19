@@ -9,7 +9,7 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 import { ManufacturerRepository } from '../exchange-manufacturer/manufacturer.repository';
 
 @EntityRepository(Exchange)
@@ -91,16 +91,16 @@ export class ExchangeRepository extends Repository<Exchange> {
         if (!found) {
             throw new NotFoundException('Exchange Not found');
         }
-        // Object.entries(found.market).forEach(([key]) => {
-        //     if (key !== 'name') {
-        //         delete found.market[key];
-        //     }
-        // });
+        Object.entries(found.market).forEach(([key]) => {
+            if (key !== 'name') {
+                delete found.market[key];
+            }
+        });
         return found;
     }
 
-    async getExchangeByIdWithIp(id: string): Promise<Exchange> {
-        const found = await this.findOne(id, {relations: ['userIpExchanges']});
+    async getExchangeByIdForViews(id: string): Promise<Exchange> {
+        const found = await this.findOne(id, {relations: ['userIpViews']});
         if (!found) {
             throw new NotFoundException('Exchange Not found');
         }
@@ -164,7 +164,7 @@ export class ExchangeRepository extends Repository<Exchange> {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('exchange')
         .leftJoinAndSelect('exchange.genres', 'genre')
-        .leftJoinAndSelect('exchange.yearCreated', 'yearCreated')
+        .leftJoinAndSelect('exchange.createdYear', 'createdYear')
         .leftJoinAndSelect('exchange.manufacturer', 'manufacturer')
         .leftJoinAndSelect('exchange.subVariations', 'subVariation');
         if (status) {
@@ -181,9 +181,9 @@ export class ExchangeRepository extends Repository<Exchange> {
         return query;
     }
 
-    async createExchange(createExchangeDto: CreateExchangeDto, market: Market, newYear: YearCreated, newManufacturer: Manufacturer,
+    async createExchange(createExchangeDto: CreateExchangeDto, market: Market, newYear: CreatedYear, newManufacturer: Manufacturer,
                          genres: Genre[], subVars: SubVariation[]): Promise<Exchange> {
-        const { name, info, images, manufacturer, year } = createExchangeDto;
+        const { name, info, images } = createExchangeDto;
         const exchange = new Exchange();
         const priceRating = new PriceRatingInfo();
         exchange.name = name.replace(/,/g, ' ');
@@ -192,7 +192,7 @@ export class ExchangeRepository extends Repository<Exchange> {
         exchange.market = market;
         exchange.status = ListingStatus.TO_REVIEW;
         exchange.priceRatingInfo = priceRating;
-        exchange.yearCreated = newYear;
+        exchange.createdYear = newYear;
         exchange.manufacturer = newManufacturer;
 
         if (genres) {
@@ -217,17 +217,17 @@ export class ExchangeRepository extends Repository<Exchange> {
         }
     }
 
-    async updateExchange(id: string, createExchangeDto: CreateExchangeDto ): Promise<void> {
+    async updateExchange(id: string, createExchangeDto: CreateExchangeDto, newYear: CreatedYear, newManufacturer: Manufacturer ): Promise<void> {
         const exchange = await this.getExchangeById(id);
-        const { name, info, manufacturer, year, era } = createExchangeDto;
+        const { name, info } = createExchangeDto;
         exchange.name = name;
         exchange.info = info;
-        exchange.yearCreated.year = year;
-        exchange.yearCreated.era = era;
-        exchange.manufacturer.name = manufacturer;
+        exchange.createdYear = newYear;
+        exchange.manufacturer = newManufacturer;
         try {
             await exchange.save();
          } catch (error) {
+            this.logger.log(error);
             throw new InternalServerErrorException('Failed to update Exchange. Check with administrator');
         }
     }

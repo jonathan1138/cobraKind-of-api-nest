@@ -9,13 +9,13 @@ import { SubItem } from './sub-item.entity';
 import { CreateSubItemDto } from './dto/create-sub-item-dto';
 import { ImgFolder } from 'src/shared/enums/upload-img-folder.enum';
 import { UserRepository } from 'src/user/user.repository';
-import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
 import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from 'src/exchange-year/year.repository';
+import { CreatedYearRepository } from 'src/exchange-year/year.repository';
 
 @Injectable()
 export class SubItemService {
@@ -28,8 +28,8 @@ export class SubItemService {
         private userRepository: UserRepository,
         @InjectRepository(ManufacturerRepository)
         private manufacturerRepository: ManufacturerRepository,
-        @InjectRepository(YearCreatedRepository)
-        private yearRepository: YearCreatedRepository,
+        @InjectRepository(CreatedYearRepository)
+        private yearRepository: CreatedYearRepository,
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
@@ -68,7 +68,7 @@ export class SubItemService {
 
     async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string, images?: object[], filenameInPath?: boolean): Promise<SubItem> {
         const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
-        let newYear = new YearCreated();
+        let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const foundYear = await this.yearRepository.checkYearByName(createSubItemDto.year);
         const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createSubItemDto.manufacturer);
@@ -108,17 +108,17 @@ export class SubItemService {
         subItem.status = status;
         if (!statusNote) {
             switch (subItem.status) {
-                case ListingStatus.TO_REVIEW:
-                  subItem.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  subItem.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   subItem.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   subItem.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   subItem.statusNote = ListingStatusNote.REJECTED;
                   break;
                 default:
-                  subItem.statusNote = ListingStatusNote.TO_REVIEW;
+                  subItem.statusNote = null;
                 }
             } else {
             subItem.statusNote = statusNote;

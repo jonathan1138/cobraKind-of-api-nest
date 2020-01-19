@@ -11,18 +11,18 @@ import { CategoryRepository } from 'src/category/category.repository';
 import { PartRepository } from 'src/market-part/part.repository';
 import { SubVariationRepository } from '../exchange-sub-variation/sub-variation.repository';
 import { UserRepository } from '../user/user.repository';
-import { UserIp } from 'src/user-ip-for-views/userIp.entity';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from '../user-profile/profile.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
 import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
 import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from '../exchange-year/year.repository';
+import { CreatedYearRepository } from '../exchange-year/year.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, ExchangeRepository, MarketRepository,
     GenreRepository, PartRepository, SubVariationRepository, UserRepository, UserIp,
-    TagRepository, ProfileRepository, SubItemRepository, PartRepository, ManufacturerRepository, YearCreatedRepository]), AuthModule],
+    TagRepository, ProfileRepository, SubItemRepository, PartRepository, ManufacturerRepository, CreatedYearRepository]), AuthModule],
   controllers: [ExchangeController],
   providers: [ExchangeService, S3UploadService, ProfileService],
 })

@@ -6,16 +6,16 @@ import { CreateManufacturerDto } from './dto/create-manufacturer-dto';
 
 @Controller('manufacturer')
 export class ManufacturerController {
-    constructor( private yearCreatedService: ManufacturerService ) {}
+    constructor( private createdYearService: ManufacturerService ) {}
     @Get()
-    tags(@Query('page') page: number): Promise<Manufacturer[]> {
-        return this.yearCreatedService.allManufacturers(page);
+    manufacturers(@Query('page') page: number): Promise<Manufacturer[]> {
+        return this.createdYearService.allManufacturers(page);
     }
     @Delete('/:id')
     @UseGuards(AuthGuard())
     deleteManufacturer(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.yearCreatedService.deleteManufacturer(id);
+        return this.createdYearService.deleteManufacturer(id);
     }
 
     @Patch('/update/:id')
@@ -24,7 +24,7 @@ export class ManufacturerController {
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body() createManufacturerDto: CreateManufacturerDto,
         ): Promise<void> {
-            return this.yearCreatedService.updateManufacturer(id, createManufacturerDto);
+            return this.createdYearService.updateManufacturer(id, createManufacturerDto);
     }
 
     @Post()
@@ -32,6 +32,6 @@ export class ManufacturerController {
     createManufacturer(
         @Body() createManufacturerDto: CreateManufacturerDto,
         ): Promise<Manufacturer> {
-        return this.yearCreatedService.createManufacturer(createManufacturerDto);
+        return this.createdYearService.createManufacturer(createManufacturerDto);
     }
 }

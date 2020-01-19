@@ -73,6 +73,14 @@ export class MarketController {
             return this.marketService.getTagsByCatId(id, filterDto, page);
     }
 
+    @Get('/view/:id')
+    getMarketByIdView(
+        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress ): Promise<Market> {
+        // tslint:disable-next-line: max-line-length
+        // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
+        return this.marketService.getMarketByIdIncrementView(id, ipAddress);
+    }
+
     @Post('/:categoryid')
     @UsePipes(ValidationPipe)
     @UseGuards(AuthGuard())
@@ -131,13 +139,13 @@ export class MarketController {
 
     @Post('/watch/:id')
     @UseGuards(AuthGuard())
-    watch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    watch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<Market> {
       return this.marketService.watchMarket(id, user.id);
     }
 
     @Post('/unwatch/:id')
     @UseGuards(AuthGuard())
-    unwatch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    unwatch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<Market> {
       return this.marketService.unWatchMarket(id, user.id);
     }
 

@@ -66,17 +66,17 @@ export class CategoryService {
         category.status = status;
         if (!statusNote) {
             switch (category.status) {
-                case ListingStatus.TO_REVIEW:
-                  category.statusNote = ListingStatusNote.TO_REVIEW;
-                  break;
-                case ListingStatus.APPROVED:
-                  category.statusNote = ListingStatusNote.APPROVED;
-                  break;
+                // case ListingStatus.TO_REVIEW:
+                //   category.statusNote = ListingStatusNote.TO_REVIEW;
+                //   break;
+                // case ListingStatus.APPROVED:
+                //   category.statusNote = ListingStatusNote.APPROVED;
+                //   break;
                 case ListingStatus.REJECTED:
                   category.statusNote = ListingStatusNote.REJECTED;
                   break;
                 default:
-                  category.statusNote = ListingStatusNote.TO_REVIEW;
+                  category.statusNote = null;
                 }
             } else {
             category.statusNote = statusNote;

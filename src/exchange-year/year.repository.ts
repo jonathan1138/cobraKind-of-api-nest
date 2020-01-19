@@ -1,13 +1,13 @@
 import { Repository, EntityRepository } from 'typeorm';
-import { YearCreated } from './year.entity';
+import { CreatedYear } from './year.entity';
 import { Logger, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { CreateYearDto } from './dto/create-year-dto';
 
-@EntityRepository(YearCreated)
-export class YearCreatedRepository extends Repository<YearCreated> {
-    private logger = new Logger('YearCreatedRepository');
+@EntityRepository(CreatedYear)
+export class CreatedYearRepository extends Repository<CreatedYear> {
+    private logger = new Logger('CreatedYearRepository');
 
-    async allYears(page: number = 1): Promise<YearCreated[]> {
+    async allYears(page: number = 1): Promise<CreatedYear[]> {
         if (page > 0) {
             return await this.find({
                 order: {
@@ -25,23 +25,23 @@ export class YearCreatedRepository extends Repository<YearCreated> {
         }
     }
 
-    async getYearCreatedById(id: string): Promise<YearCreated> {
+    async getCreatedYearById(id: string): Promise<CreatedYear> {
         const found = await this.findOne(id);
         if (!found) {
-            throw new NotFoundException('YearCreated Not found');
+            throw new NotFoundException('CreatedYear Not found');
         }
         return found;
     }
 
-    async checkYearByName(year: number): Promise<YearCreated> {
+    async checkYearByName(year: number): Promise<CreatedYear> {
         const query = this.createQueryBuilder('year')
         .andWhere('year.year = :year', { year });
         const found = await query.getOne();
         return found;
     }
 
-    async createYear(createYearDto: CreateYearDto): Promise<YearCreated> {
-        const newYear = new YearCreated();
+    async createYear(createYearDto: CreateYearDto): Promise<CreatedYear> {
+        const newYear = new CreatedYear();
         const {year, era } = createYearDto;
         newYear.year = year;
         newYear.era = era;

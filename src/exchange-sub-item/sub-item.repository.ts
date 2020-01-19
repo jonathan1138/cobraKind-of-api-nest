@@ -6,7 +6,7 @@ import { CreateSubItemDto } from './dto/create-sub-item-dto';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
+import { CreatedYear } from 'src/exchange-year/year.entity';
 import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
 
 @EntityRepository(SubItem)
@@ -33,7 +33,7 @@ export class SubItemRepository extends Repository<SubItem> {
     }
 
     async getSubItemByIdWithIp(id: string): Promise<SubItem> {
-        const found = await this.findOne(id, {relations: ['userIpExchanges']});
+        const found = await this.findOne(id, {relations: ['userIpViews']});
         if (!found) {
             throw new NotFoundException('SubItem Not found');
         }
@@ -63,7 +63,7 @@ export class SubItemRepository extends Repository<SubItem> {
     }
 
     async createSubItem(
-        createSubItemDto: CreateSubItemDto, exchange: Exchange, newYear: YearCreated, newManufacturer: Manufacturer,): Promise<SubItem> {
+        createSubItemDto: CreateSubItemDto, exchange: Exchange, newYear: CreatedYear, newManufacturer: Manufacturer): Promise<SubItem> {
         const { name, info, images } = createSubItemDto;
         const subItem = new SubItem();
         const priceRating = new PriceRatingInfo();
@@ -74,7 +74,7 @@ export class SubItemRepository extends Repository<SubItem> {
         subItem.exchange = exchange;
         subItem.status = ListingStatus.TO_REVIEW;
         subItem.subPriceRatingInfo = priceRating;
-        subItem.yearCreated = newYear;
+        subItem.createdYear = newYear;
         subItem.manufacturer = newManufacturer;
 
         try {

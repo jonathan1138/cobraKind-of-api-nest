@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, NotAcceptableException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, NotAcceptableException } from '@nestjs/common';
 import { MarketRepository } from 'src/market/market.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExchangeRepository } from './exchange.repository';
@@ -14,17 +14,15 @@ import { Uuid } from 'aws-sdk/clients/groundstation';
 import { SubVariation } from '../exchange-sub-variation/sub-variation.entity';
 import { SubVariationRepository } from 'src/exchange-sub-variation/sub-variation.repository';
 import { UserRepository } from 'src/user/user.repository';
-import { UserIp } from '../user-ip-for-views/userIp.entity';
+import { UserIp } from '../user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { ProfileService } from 'src/user-profile/profile.service';
 import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { YearCreatedRepository } from 'src/exchange-year/year.repository';
+import { CreatedYearRepository } from 'src/exchange-year/year.repository';
 import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
-import { YearCreated } from 'src/exchange-year/year.entity';
-import e = require('express');
-import { create } from 'domain';
-import { ListingVote } from 'src/shared/enums/listing-vote.enum';
+import { CreatedYear } from 'src/exchange-year/year.entity';
+import { UserLike } from 'src/user/entities/user-like.entity';
 
 @Injectable()
 export class ExchangeService {
@@ -41,8 +39,8 @@ export class ExchangeService {
         private subVariationRepository: SubVariationRepository,
         @InjectRepository(ManufacturerRepository)
         private manufacturerRepository: ManufacturerRepository,
-        @InjectRepository(YearCreatedRepository)
-        private yearRepository: YearCreatedRepository,
+        @InjectRepository(CreatedYearRepository)
+        private yearRepository: CreatedYearRepository,
         @InjectRepository(UserIp)
         private readonly userIpRepository: Repository<UserIp>,
         private readonly s3UploadService: S3UploadService,
@@ -58,7 +56,7 @@ export class ExchangeService {
     }
 
     async getExchangeByIdIncrementView(id: string, ipAddress: string): Promise<Exchange> {
-        const exchange =  await this.exchangeRepository.getExchangeByIdWithIp(id);
+        const exchange =  await this.exchangeRepository.getExchangeByIdForViews(id);
         if (exchange) {
             const userIp = new UserIp();
             userIp.ipAddress = ipAddress;
@@ -66,14 +64,38 @@ export class ExchangeService {
             if (foundIp) {
                 userIp.id = foundIp.id;
             }
-            if ( !exchange.userIpExchanges.find(x => x.ipAddress === ipAddress) ) {
-                exchange.userIpExchanges.push(userIp);
-                this.exchangeRepository.incrementView(id);
+            if ( !exchange.userIpViews.find(x => x.ipAddress === ipAddress) ) {
+                exchange.userIpViews.push(userIp);
+                exchange.views++;
+                // this.exchangeRepository.incrementView(id);
                 return await exchange.save();
             }
         }
-        delete exchange.userIpExchanges;
+        delete exchange.userIpViews;
         return exchange;
+    }
+
+    async updateVote(userId: string, id: string): Promise<Exchange> {
+        const exchange =  await this.exchangeRepository.getExchangeById(id);
+        const user = await this.userRepository.findOne(userId, {relations: ['likes']});
+        const userLike = new UserLike();
+        const isNewFavorite = user.likes.findIndex(exch => exch.id === exchange.id) < 0;
+        if (isNewFavorite) {
+            userLike.id = exchange.id;
+            userLike.name = exchange.name;
+            user.likes.push(userLike);
+            exchange.likes++;
+            await this.userRepository.save(user);
+            return await exchange.save();
+        } else {
+            const deleteIndex = user.likes.findIndex(exch => exch.id === exchange.id);
+            if (deleteIndex >= 0) {
+                user.likes.splice(deleteIndex, 1);
+                exchange.likes--;
+                await this.userRepository.save(user);
+                return await exchange.save();
+            }
+        }
     }
 
     async getExchangesByMarket(filterDto: StatusAndSearchFilterDto, marketId: string): Promise<Exchange[]> {
@@ -106,11 +128,10 @@ export class ExchangeService {
 
     async createExchange(createExchangeDto: CreateExchangeDto, marketId: string, userId: string,
                          images?: object[], filenameInPath?: boolean): Promise<Exchange> {
-        let newYear = new YearCreated();
+        let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
         const foundYear = await this.yearRepository.checkYearByName(createExchangeDto.year);
-        const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createExchangeDto.manufacturer);
         if (foundYear) {
             newYear = foundYear;
         } else {
@@ -118,6 +139,7 @@ export class ExchangeService {
             newYear.year = year;
             newYear.era = era;
         }
+        const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createExchangeDto.manufacturer);
         if (foundManufacturer) {
             newManufacturer = foundManufacturer;
         } else {
@@ -174,8 +196,8 @@ export class ExchangeService {
                 case ListingStatus.REJECTED:
                   exchange.statusNote = ListingStatusNote.REJECTED;
                   break;
-                // default:
-                //   exchange.statusNote = ListingStatusNote.TO_REVIEW;
+                default:
+                  exchange.statusNote = null;
                 }
             } else {
             exchange.statusNote = statusNote;
@@ -185,10 +207,14 @@ export class ExchangeService {
     }
 
     async updateExchangeGenres(id: string, genres: Genre[] ): Promise<Exchange> {
-        const exchange = await this.exchangeRepository.getExchangeById(id);
+        const exchange = await this.exchangeRepository.findOne({id});
         const processType = 'UPDATE';
-        const processedGenres = await this.processGenres(exchange.marketId, genres, processType);
-        exchange.genres = processedGenres;
+        if (genres) {
+            const processedGenres = await this.processGenres(exchange.marketId, genres, processType);
+            processedGenres.length ? exchange.genres = processedGenres : exchange.genres = [];
+        } else {
+            exchange.genres = [];
+        }
         await exchange.save();
         return exchange;
     }
@@ -203,8 +229,29 @@ export class ExchangeService {
     }
 
     async updateExchange(id: string, createExchangeDto: CreateExchangeDto): Promise<void> {
-        if ( createExchangeDto.name || createExchangeDto.info || createExchangeDto.manufacturer || createExchangeDto.year ) {
-          return this.exchangeRepository.updateExchange(id, createExchangeDto);
+        if ( createExchangeDto.name || createExchangeDto.info || createExchangeDto.manufacturer || createExchangeDto.year || createExchangeDto.era ) {
+            let newYear = new CreatedYear();
+            let newManufacturer = new Manufacturer();
+            if (createExchangeDto.year || createExchangeDto.era) {
+                const foundYear = await this.yearRepository.checkYearByName(createExchangeDto.year);
+                if (foundYear) {
+                    newYear = foundYear;
+                    newYear.era = createExchangeDto.era;
+                } else {
+                    const {year, era } = createExchangeDto;
+                    newYear.year = year;
+                    newYear.era = era;
+                }
+            }
+            if (createExchangeDto.manufacturer) {
+                const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createExchangeDto.manufacturer);
+                if (foundManufacturer) {
+                    newManufacturer = foundManufacturer;
+                } else {
+                    newManufacturer.name = createExchangeDto.manufacturer;
+                }
+            }
+            return this.exchangeRepository.updateExchange(id, createExchangeDto, newYear, newManufacturer);
         } else {
           throw new NotAcceptableException(`Update details not provided`);
         }
@@ -233,7 +280,7 @@ export class ExchangeService {
         return arrayImages;
     }
 
-    async processGenres(mktId: Uuid, genres: Genre[], processType: string): Promise<Genre[]> {
+    async processGenres(mktId: string, genres: Genre[], processType: string): Promise<Genre[]> {
         const newGenres: Genre[] = [];
         let assureArray = [];
         if ( !Array.isArray(genres) ) {
@@ -312,119 +359,4 @@ export class ExchangeService {
             return this.exchangeRepository.save(exch);
         }
     }
-
-    async updateVote(id: string, ipAddress: string, vote: ListingVote, voteComment: string ): Promise<void> {
-        const exchange =  await this.exchangeRepository.getExchangeByIdWithIp(id);
-        if (exchange) {
-            if (vote === ListingVote.LIKE) {
-                this.exchangeRepository.incrementLike(id);
-            } else {
-                if (exchange.likes > 0) {
-                    this.exchangeRepository.decrementLike(id);
-                }
-            }
-        }
-    }
-
-    // async upvote(id: string, userId: string) {
-    //     let exchange = await this.exchangeRepository.findOne({
-    //       where: { id },
-    //       relations: ['upvotes', 'downvotes'],
-    //     });
-    //     const user = await this.userRepository.findOne({ where: { id: userId } });
-    //     exchange = await this.vote(exchange, user, ListingRating.UP);
-    //     return this.exchangeToResponseObject(exchange);
-    //   }
-
-    // async downvote(id: string, userId: string) {
-    //   let exchange = await this.exchangeRepository.findOne({
-    //     where: { id },
-    //     relations: ['upvotes', 'downvotes'],
-    //   });
-    //   const user = await this.userRepository.findOne({ where: { id: userId } });
-    //   exchange = await this.vote(exchange, user, ListingRating.DOWN);
-    //   return this.exchangeToResponseObject(exchange);
-    // }
-
-    // private exchangeToResponseObject(exchange: Exchange): Exchange {
-    //     const responseObject: any = {
-    //       ...exchange,
-    //     };
-    //     if (exchange.upvotes) {
-    //       responseObject.upvotes = exchange.upvotes.length;
-    //     }
-    //     if (exchange.downvotes) {
-    //       responseObject.downvotes = exchange.downvotes.length;
-    //     }
-    //     return responseObject;
-    // }
-
-    // private async vote(exchange: Exchange, user: UserEntity, vote: ListingRating): Promise<Exchange> {
-    //     const opposite = vote === ListingRating.UP ? ListingRating.DOWN : ListingRating.UP;
-    //     if (
-    //       exchange[opposite].filter(voter => voter.id === user.id).length > 0 ||
-    //       exchange[vote].filter(voter => voter.id === user.id).length > 0
-    //     ) {
-    //       exchange[opposite] = exchange[opposite].filter(voter => voter.id !== user.id);
-    //       exchange[vote] = exchange[vote].filter(voter => voter.id !== user.id);
-    //       await this.exchangeRepository.save(exchange);
-    //     } else if (exchange[vote].filter(voter => voter.id === user.id).length < 1) {
-    //       exchange[vote].push(user);
-    //       await this.exchangeRepository.save(exchange);
-    //     } else {
-    //         throw new InternalServerErrorException('Failed to cast Vote...');
-    //     }
-    //     return exchange;
-    // }
 }
-
-// async upvote(id: string, userId: string) {
-//     let exchange = await this.exchangeRepository.findOne({
-//       where: { id },
-//       relations: ['upvotes', 'downvotes'],
-//     });
-//     const user = await this.userRepository.findOne({ where: { id: userId } });
-//     exchange = await this.vote(exchange, user, ListingRating.UP);
-//     return this.exchangeToResponseObject(exchange);
-//   }
-
-// async downvote(id: string, userId: string) {
-//   let exchange = await this.exchangeRepository.findOne({
-//     where: { id },
-//     relations: ['upvotes', 'downvotes'],
-//   });
-//   const user = await this.userRepository.findOne({ where: { id: userId } });
-//   exchange = await this.vote(exchange, user, ListingRating.DOWN);
-//   return this.exchangeToResponseObject(exchange);
-// }
-
-// private exchangeToResponseObject(exchange: Exchange): Exchange {
-//     const responseObject: any = {
-//       ...exchange,
-//     };
-//     if (exchange.upvotes) {
-//       responseObject.upvotes = exchange.upvotes.length;
-//     }
-//     if (exchange.downvotes) {
-//       responseObject.downvotes = exchange.downvotes.length;
-//     }
-//     return responseObject;
-// }
-
-// private async vote(exchange: Exchange, user: UserEntity, vote: ListingRating): Promise<Exchange> {
-//     const opposite = vote === ListingRating.UP ? ListingRating.DOWN : ListingRating.UP;
-//     if (
-//       exchange[opposite].filter(voter => voter.id === user.id).length > 0 ||
-//       exchange[vote].filter(voter => voter.id === user.id).length > 0
-//     ) {
-//       exchange[opposite] = exchange[opposite].filter(voter => voter.id !== user.id);
-//       exchange[vote] = exchange[vote].filter(voter => voter.id !== user.id);
-//       await this.exchangeRepository.save(exchange);
-//     } else if (exchange[vote].filter(voter => voter.id === user.id).length < 1) {
-//       exchange[vote].push(user);
-//       await this.exchangeRepository.save(exchange);
-//     } else {
-//         throw new InternalServerErrorException('Failed to cast Vote...');
-//     }
-//     return exchange;
-// }
