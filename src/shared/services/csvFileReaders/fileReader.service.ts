@@ -25,11 +25,12 @@ export class FileReaderService {
     ) {}
     private logger = new Logger('FileReaderService');
     private userId = 'd86eafeb-f7b1-443b-809b-57454ec9e208';
+    private tagCatId = '6e28157d-0dcf-4aed-adfa-938db705419a';
 
     async importCategoryFileToDb(filename: string) {
         const categoryReader = CategoryFileReader.fromCsv(filename);
         if ( categoryReader.load() === true ) {
-            return await this.processCategoryFileData(categoryReader.fileData);
+            const output = await this.processCategoryFileData(categoryReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
@@ -51,7 +52,7 @@ export class FileReaderService {
                 };
             try {
                 const result = await this.categoryService.createCategory(category);
-                if (result) { recordSuccess++; }
+                recordSuccess++;
             } catch (error) {
                 recordFail++;
                 this.logger.error(`Failed to create a Category: `, error.stack);
@@ -128,7 +129,7 @@ export class FileReaderService {
                     markets: [],
                 };
             try {
-                    const result = await this.tagService.createTag(tag, item[1], this.userId);
+                    await this.tagService.createTag(tag, this.tagCatId, this.userId);
                     recordSuccess++;
                 } catch (error) {
                     recordFail++;
