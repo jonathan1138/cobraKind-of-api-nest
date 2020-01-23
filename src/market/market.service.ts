@@ -42,6 +42,10 @@ export class MarketService {
         return await this.marketRepository.getMarketById(id);
     }
 
+    async marketIdByName(name: string): Promise<string> {
+        return await this.marketRepository.marketIdByName(name);
+    }
+
     async getMarketByIdIncrementView(id: string, ipAddress: string): Promise<Market> {
         const market =  await this.marketRepository.getMarketByIdForViews(id);
         if (market) {

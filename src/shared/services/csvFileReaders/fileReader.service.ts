@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { CategoryFileReader } from './classes/categoryFileReader';
 import { FileCategoryData } from './types/fileCategoryData';
 import { CreateCategoryDto } from '../../../category/dto/create-category-dto';
@@ -24,12 +24,12 @@ export class FileReaderService {
         private exchangeService: ExchangeService,
     ) {}
     private logger = new Logger('FileReaderService');
-    private userId = '260a7b48-e60a-4d0a-ac26-0d7186215542';
+    private userId = 'd86eafeb-f7b1-443b-809b-57454ec9e208';
 
     async importCategoryFileToDb(filename: string) {
         const categoryReader = CategoryFileReader.fromCsv(filename);
         if ( categoryReader.load() === true ) {
-            const output = await this.processCategoryFileData(categoryReader.fileData);
+            return await this.processCategoryFileData(categoryReader.fileData);
         } else {
             Logger.log('Failed to import this file to database. Please check with admin');
         }
@@ -50,25 +50,27 @@ export class FileReaderService {
                     images: imageArray,
                 };
             try {
-                    const result = await this.categoryService.createCategory(category);
-                    if (result) { recordSuccess++; }
-                } catch (error) {
-                    recordFail++;
-                    this.logger.error(`Failed to create a Category: `, error.stack);
-                    // throw new InternalServerErrorException();
-                }
+                const result = await this.categoryService.createCategory(category);
+                if (result) { recordSuccess++; }
+            } catch (error) {
+                recordFail++;
+                this.logger.error(`Failed to create a Category: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
         }
         const report = `Processed ${recordSuccess} records successfully / ${recordFail} failed`;
         Logger.log(report);
         return report;
     }
 
-    async importMarketFileToDb(filename: string) {
+    async importMarketFileToDb(filename: string): Promise<string> {
         const marketReader = MarketFileReader.fromCsv(filename);
         if ( marketReader.load() === true ) {
-            const output = await this.processMarketFileData(marketReader.fileData);
+            return await this.processMarketFileData(marketReader.fileData);
         } else {
-            Logger.log('Failed to import this file to database. Please check with admin');
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
         }
     }
 
@@ -92,25 +94,27 @@ export class FileReaderService {
                     tags: tagsArray,
                 };
             try {
-                    const result = await this.marketService.createMarket(market, item[4], this.userId);
-                    if (result) { recordSuccess++; }
-                } catch (error) {
-                    recordFail++;
-                    this.logger.error(`Failed to create a Market: `, error.stack);
-                    // throw new InternalServerErrorException();
-                }
+                const result = await this.marketService.createMarket(market, item[4], this.userId);
+                if (result) { recordSuccess++; }
+            } catch (error) {
+                recordFail++;
+                this.logger.error(`Failed to create a Market: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
         }
-        const report = `Processed ${recordSuccess} records successfully / ${recordFail}`;
+        const report = `Processed ${recordSuccess} records successfully / ${recordFail} records failed`;
         Logger.log(report);
         return report;
     }
 
-    async importTagFileToDb(filename: string) {
+    async importTagFileToDb(filename: string): Promise<string>  {
         const tagReader = TagFileReader.fromCsv(filename);
         if ( tagReader.load() === true ) {
-            const output = await this.processTagFileData(tagReader.fileData);
+            return await this.processTagFileData(tagReader.fileData);
         } else {
-            Logger.log('Failed to import this file to database. Please check with admin');
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
         }
     }
 
@@ -121,11 +125,11 @@ export class FileReaderService {
             // process image array
             const tag: CreateTagDto = {
                     name: item[0],
-                    markets: []
+                    markets: [],
                 };
             try {
                     const result = await this.tagService.createTag(tag, item[1], this.userId);
-                    if (result) { recordSuccess++; }
+                    recordSuccess++;
                 } catch (error) {
                     recordFail++;
                     this.logger.error(`Failed to create a Tag: `, error.stack);
@@ -137,44 +141,62 @@ export class FileReaderService {
         return report;
     }
 
-    async importExchangeFileToDb(filename: string) {
+    async importExchangeFileToDb(filename: string): Promise<string> {
         const exchangeReader = ExchangeFileReader.fromCsv(filename);
         if ( exchangeReader.load() === true ) {
-            const output = await this.processExchangeFileData(exchangeReader.fileData);
+            return await this.processExchangeFileData(exchangeReader.fileData);
         } else {
-            Logger.log('Failed to import this file to database. Please check with admin');
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
         }
     }
 
-    async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string> {
+    async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string>  {
         let recordSuccess = 0;
-        let recordFail = 0;
-        for (const item of exchanges) {
-            // process image array
+        let mktId = '';
+        const processedRecords = exchanges.map(async (item) => {
             let imageArray = [];
             if (item[2].length) {
                 imageArray = item[2].split('|');
             }
-            let tagsArray = [];
+            let genresArray = [];
             if (item[3].length) {
-                tagsArray = item[3].split('|');
+                genresArray = item[3].split('|');
             }
-            // const exchange: CreateExchangeDto = {
-            //         name: item[0],
-            //         info: item[1],
-            //         images: imageArray,
-            //         genres: genresArray,
-            //     };
-            // try {
-            //         const result = await this.exchangeService.createExchange(exchange, item[4], this.userId);
-            //         if (result) { recordSuccess++; }
-            //     } catch (error) {
-            //         recordFail++;
-            //         this.logger.error(`Failed to create an Exchange: `, error.stack);
-            //         // throw new InternalServerErrorException();
-            //     }
-        }
-        const report = `Processed ${recordSuccess} records successfully / ${recordFail}`;
+            const createdYear = parseInt(item[5], 10);
+            const exchange: CreateExchangeDto = {
+                name: item[0],
+                info: item[1],
+                images: imageArray,
+                genres: genresArray,
+                manufacturer: item[4],
+                year: createdYear,
+                era: item[6],
+                subVariations: [],
+            };
+            try {
+                await this.marketService.marketIdByName(item[7])
+                .then((res) => {
+                    mktId = res;
+                });
+            } catch (error) {
+                // this.logger.error(`Failed to find a Market: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+            try {
+                await this.exchangeService.createExchange(exchange, mktId, this.userId);
+                recordSuccess++;
+            } catch (error) {
+                this.logger.error(`Failed to create an Exchange: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+        });
+        const result = await Promise.all(processedRecords)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${exchanges.length}`;
         Logger.log(report);
         return report;
     }

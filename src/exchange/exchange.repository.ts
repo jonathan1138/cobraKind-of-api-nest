@@ -17,20 +17,19 @@ export class ExchangeRepository extends Repository<Exchange> {
     private logger = new Logger('ExchangeRepository');
 
     async getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
-        const query = this.buildQuery(filterDto, page)
+        const query = this.buildQuery(filterDto, page);
         // query.leftJoinAndMapOne('exchange.market', Market, 'market', 'market.id = exchange.marketId');
-        .leftJoinAndSelect('exchange.market', 'market');
         try {
-            const exchanges = await query.getMany();
-            // sucks but whatever
-            exchanges.map(item => (
-                Object.entries(item.market).forEach(([key]) => {
-                    if (key !== 'name') {
-                        delete item.market[key];
-                    }
-                })
-            ));
-            return exchanges;
+            return await query.getMany();
+            // // sucks but whatever
+            // exchanges.map(item => (
+            //     Object.entries(item.market).forEach(([key]) => {
+            //         if (key !== 'name') {
+            //             delete item.market[key];
+            //         }
+            //     })
+            // ));
+            // return exchanges;
         } catch (error) {
             this.logger.error(`Failed to get exchanges for user`, error.stack);
             throw new InternalServerErrorException('Failed to get exchanges for user');
@@ -166,7 +165,10 @@ export class ExchangeRepository extends Repository<Exchange> {
         .leftJoinAndSelect('exchange.genres', 'genre')
         .leftJoinAndSelect('exchange.createdYear', 'createdYear')
         .leftJoinAndSelect('exchange.manufacturer', 'manufacturer')
-        .leftJoinAndSelect('exchange.subVariations', 'subVariation');
+        .leftJoinAndSelect('exchange.subVariations', 'subVariation')
+        .leftJoinAndSelect('exchange.market', 'market')
+        .select(['exchange', 'market.id', 'market.name', 'createdYear',
+            'manufacturer', 'genre.id', 'genre.name', 'subVariation']);
         if (status) {
             query.andWhere('exchange.status = :status', { status });
         }

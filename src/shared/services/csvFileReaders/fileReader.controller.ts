@@ -14,7 +14,6 @@ export class FileReaderController {
         async uploadCategory(
         @Param('destination') destination: string,
         @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
         const filename = Object.values(file)[1];
         this.importcategoryfiletodb('categories' + '/' + filename);
     }
@@ -29,54 +28,51 @@ export class FileReaderController {
     @Post('/market/:dest')
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async uploadMarket(
+    async uploadMarket(
         @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
+        @UploadedFile() file: string): Promise<string> {
         const filename = Object.values(file)[1];
-        this.importmarketfiletodb('markets' + '/' + filename);
+        return await this.importmarketfiletodb('markets' + '/' + filename);
     }
 
     @Post('/market/importfiletodb')
     @UseGuards(AuthGuard())
-    importmarketfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.fileReaderService.importMarketFileToDb(filename);
+    async importmarketfiletodb(
+        @Body('filename') filename: string): Promise<string> {
+        return await this.fileReaderService.importMarketFileToDb(filename);
     }
 
     @Post('/tag/:dest')
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async uploadTag(
+    async uploadTag(
         @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
+        @UploadedFile() file: string): Promise<string>  {
         const filename = Object.values(file)[1];
-        this.importtagfiletodb('tags' + '/' + filename);
+        return await this.importtagfiletodb('tags' + '/' + filename);
     }
 
     @Post('/tag/importfiletodb')
     @UseGuards(AuthGuard())
-    importtagfiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.fileReaderService.importTagFileToDb(filename);
+    async importtagfiletodb(
+        @Body('filename') filename: string): Promise<string>  {
+        return await this.fileReaderService.importTagFileToDb(filename);
     }
 
     @Post('/exchange/:dest')
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file', multerOptions ))
-        async uploadExchange(
+    async uploadExchange(
         @Param('destination') destination: string,
-        @UploadedFile() file: string): Promise<void> {
-        Logger.log(file);
+        @UploadedFile() file: string): Promise<string> {
         const filename = Object.values(file)[1];
-        this.importexchangefiletodb('exchanges' + '/' + filename);
+        return await this.importexchangefiletodb('exchanges' + '/' + filename);
     }
 
     @Post('/exchange/importfiletodb')
     @UseGuards(AuthGuard())
-    importexchangefiletodb(
-        @Body('filename') filename: string): Promise<void> {
-        return this.fileReaderService.importExchangeFileToDb(filename);
+    async importexchangefiletodb(
+        @Body('filename') filename: string): Promise<string> {
+        return await this.fileReaderService.importExchangeFileToDb(filename);
     }
 }

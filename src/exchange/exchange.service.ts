@@ -23,6 +23,7 @@ import { CreatedYearRepository } from 'src/exchange-year/year.repository';
 import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/exchange-year/year.entity';
 import { UserLike } from 'src/user/entities/user-like.entity';
+import { Market } from 'src/market/market.entity';
 
 @Injectable()
 export class ExchangeService {
@@ -75,29 +76,6 @@ export class ExchangeService {
         return exchange;
     }
 
-    async updateVote(userId: string, id: string): Promise<Exchange> {
-        const exchange =  await this.exchangeRepository.getExchangeById(id);
-        const user = await this.userRepository.findOne(userId, {relations: ['likes']});
-        const userLike = new UserLike();
-        const isNewFavorite = user.likes.findIndex(exch => exch.id === exchange.id) < 0;
-        if (isNewFavorite) {
-            userLike.id = exchange.id;
-            userLike.name = exchange.name;
-            user.likes.push(userLike);
-            exchange.likes++;
-            await this.userRepository.save(user);
-            return await exchange.save();
-        } else {
-            const deleteIndex = user.likes.findIndex(exch => exch.id === exchange.id);
-            if (deleteIndex >= 0) {
-                user.likes.splice(deleteIndex, 1);
-                exchange.likes--;
-                await this.userRepository.save(user);
-                return await exchange.save();
-            }
-        }
-    }
-
     async getExchangesByMarket(filterDto: StatusAndSearchFilterDto, marketId: string): Promise<Exchange[]> {
        return await this.exchangeRepository.getExchangesByMarket(filterDto, marketId);
     }
@@ -147,19 +125,15 @@ export class ExchangeService {
         }
         const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
-        const processType = 'CREATE';
-        let processedGenres: Genre[] = [];
         const { subVariations } = createExchangeDto;
+        let processedGenres: Genre[] = [];
         let processedSubVars: SubVariation[] = [];
-
         if (genres) {
-            processedGenres = await this.processGenres(market.id, genres, processType);
+            processedGenres = await this.processGenres(genres);
         }
-
         if (subVariations) {
-            processedSubVars = await this.processSubVariations(market.id, subVariations, processType);
+            processedSubVars = await this.processSubVariations(market.id, subVariations);
         }
-
         if ( isExchangeNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
                 const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
@@ -175,6 +149,63 @@ export class ExchangeService {
         }
     }
 
+    async updateExchangeGenres(id: string, genres: Genre[] ): Promise<Exchange> {
+        const exchange = await this.exchangeRepository.findOne({id});
+        if (genres) {
+            const processedGenres = await this.processGenres(genres);
+            processedGenres.length ? exchange.genres = processedGenres : exchange.genres = [];
+        } else {
+            exchange.genres = [];
+        }
+        await exchange.save();
+        return exchange;
+    }
+
+    async processGenres(genres: Genre[]): Promise<Genre[]> {
+        const newGenres: Genre[] = [];
+        let assureArray = [];
+        if ( !Array.isArray(genres) ) {
+            assureArray.push(genres);
+        } else {
+            assureArray = [...genres];
+        }
+        const uploadPromises = assureArray.map(async (genre, index: number) => {
+            const newGenre = new Genre();
+            const foundGenre = await this.genreRepository.genresByName(genre);
+            if (foundGenre) {
+                newGenre.id = foundGenre.id;
+            }
+            newGenre.name = genre;
+            newGenre.status = ListingStatus.TO_REVIEW;
+            newGenres.push(newGenre);
+        });
+        await Promise.all(uploadPromises);
+        return newGenres;
+    }
+
+    async updateVote(userId: string, id: string): Promise<Exchange> {
+        const exchange =  await this.exchangeRepository.getExchangeById(id);
+        const user = await this.userRepository.findOne(userId, {relations: ['likes']});
+        const userLike = new UserLike();
+        const isNewFavorite = user.likes.findIndex(exch => exch.id === exchange.id) < 0;
+        if (isNewFavorite) {
+            userLike.id = exchange.id;
+            userLike.name = exchange.name;
+            user.likes.push(userLike);
+            exchange.likes++;
+            await this.userRepository.save(user);
+            return await exchange.save();
+        } else {
+            const deleteIndex = user.likes.findIndex(exch => exch.id === exchange.id);
+            if (deleteIndex >= 0) {
+                user.likes.splice(deleteIndex, 1);
+                exchange.likes--;
+                await this.userRepository.save(user);
+                return await exchange.save();
+            }
+        }
+    }
+
     async deleteExchange(id: string): Promise<void> {
         const result = await this.exchangeRepository.delete(id);
         if (result.affected === 0) {
@@ -187,12 +218,6 @@ export class ExchangeService {
         exchange.status = status;
         if (!statusNote) {
             switch (exchange.status) {
-                // case ListingStatus.TO_REVIEW:
-                //   exchange.statusNote = ListingStatusNote.TO_REVIEW;
-                //   break;
-                // case ListingStatus.APPROVED:
-                //   exchange.statusNote = ListingStatusNote.APPROVED;
-                //   break;
                 case ListingStatus.REJECTED:
                   exchange.statusNote = ListingStatusNote.REJECTED;
                   break;
@@ -206,23 +231,10 @@ export class ExchangeService {
         return exchange;
     }
 
-    async updateExchangeGenres(id: string, genres: Genre[] ): Promise<Exchange> {
-        const exchange = await this.exchangeRepository.findOne({id});
-        const processType = 'UPDATE';
-        if (genres) {
-            const processedGenres = await this.processGenres(exchange.marketId, genres, processType);
-            processedGenres.length ? exchange.genres = processedGenres : exchange.genres = [];
-        } else {
-            exchange.genres = [];
-        }
-        await exchange.save();
-        return exchange;
-    }
-
     async updateExchangeVariations(id: string, subVariations: SubVariation[] ): Promise<Exchange> {
         const exchange = await this.exchangeRepository.getExchangeById(id);
         const processType = 'UPDATE';
-        const processedVars = await this.processSubVariations(exchange.marketId, subVariations, processType);
+        const processedVars = await this.processSubVariations(exchange.marketId, subVariations);
         exchange.subVariations = processedVars;
         await exchange.save();
         return exchange;
@@ -280,37 +292,11 @@ export class ExchangeService {
         return arrayImages;
     }
 
-    async processGenres(mktId: string, genres: Genre[], processType: string): Promise<Genre[]> {
-        const newGenres: Genre[] = [];
-        let assureArray = [];
-        if ( !Array.isArray(genres) ) {
-            assureArray.push(genres);
-        } else {
-            assureArray = [...genres];
-        }
-        const uploadPromises = assureArray.map(async (genre, index: number) => {
-            const newGenre = new Genre();
-            const foundGenre = await this.genreRepository.genresByName(genre);
-            if (foundGenre) {
-            //    if ( (foundTag.categoryId === catId) && (processType.localeCompare('CREATE')) ) {
-                   newGenre.id = foundGenre.id;
-            //    } else {
-            //        throw new ConflictException('This tag exists in another category / tags must be unique per category');
-            //    }
-            }
-            newGenre.name = genre;
-            newGenre.marketId = mktId;
-            newGenre.status = ListingStatus.TO_REVIEW;
-            newGenres.push(newGenre);
-        });
-        await Promise.all(uploadPromises);
-        return newGenres;
-    }
     // getAllExchanges(): Exchange[] {
     //     const copiedExchanges = JSON.parse(JSON.stringify(this.Exchanges));
     //     return copiedExchanges;
     // }
-    async processSubVariations(mktId: Uuid, subVariations: SubVariation[], processType: string): Promise<SubVariation[]> {
+    async processSubVariations(mktId: Uuid, subVariations: SubVariation[]): Promise<SubVariation[]> {
         const newVars: SubVariation[] = [];
         let assureArray = [];
         if ( !Array.isArray(subVariations) ) {
@@ -322,11 +308,7 @@ export class ExchangeService {
             const newVar = new SubVariation();
             const foundSubVar = await this.subVariationRepository.subVariationsByName(subVar);
             if (foundSubVar) {
-            //    if ( (foundTag.categoryId === catId) && (processType.localeCompare('CREATE')) ) {
                 newVar.id = foundSubVar.id;
-            //    } else {
-            //        throw new ConflictException('This tag exists in another category / tags must be unique per category');
-            //    }
             }
             newVar.name = subVar;
             newVar.marketId = mktId;

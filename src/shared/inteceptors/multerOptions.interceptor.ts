@@ -1,7 +1,6 @@
 import { extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
-import { v4 as uuid } from 'uuid';
 import { HttpException, HttpStatus, Param } from '@nestjs/common';
 import * as config from 'config';
 
@@ -38,9 +37,12 @@ export const multerOptions = {
                     uploadPath = multerConfig.dest + '/' + paramPath;
                     break;
                 case 'markets':
-                        uploadPath = multerConfig.dest + '/' + paramPath;
-                        break;
+                    uploadPath = multerConfig.dest + '/' + paramPath;
+                    break;
                 case 'tags':
+                    uploadPath = multerConfig.dest + '/' + paramPath;
+                    break;
+                case 'exchanges':
                     uploadPath = multerConfig.dest + '/' + paramPath;
                     break;
                 default:

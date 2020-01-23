@@ -3,43 +3,44 @@ import { Genre } from './genre.entity';
 import { Logger, NotAcceptableException, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { CreateGenreDto } from './dto/create-genre-dto';
+import { Market } from 'src/market/market.entity';
 
 @EntityRepository(Genre)
 export class GenreRepository extends Repository<Genre> {
     private logger = new Logger('GenreRepository');
 
-    async allGenres(page: number = 1): Promise<Genre[]> {
-        if (page > 0) {
-            return await this.find({
-                order: {
-                    name: 'ASC',
-                },
-                take: 50,
-                skip: 50 * (page - 1),
-            });
-        } else {
-            return await this.find({
-                order: {
-                    name: 'ASC',
-                },
-            });
-        }
-    }
+    // async getGenres(page: number = 1): Promise<Genre[]> {
+    //     if (page > 0) {
+    //         return await this.find({
+    //             order: {
+    //                 name: 'ASC',
+    //             },
+    //             take: 50,
+    //             skip: 50 * (page - 1),
+    //         });
+    //     } else {
+    //         return await this.find({
+    //             order: {
+    //                 name: 'ASC',
+    //             },
+    //         });
+    //     }
+    // }
+    // async exchangesByGenres(ids: string[]): Promise<Genre[]> {
+    //     return await this.findByIds(ids, {select: ['name', 'marketId'], relations: ['exchanges']});
+    // }
 
-    async allExchanges(page: number = 1): Promise<Genre[]> {
+    async getGenres(page: number = 1): Promise<Genre[]> {
         // return await this.find({select: ['name'], relations: ['exchanges']});
         const query = this.createQueryBuilder('genre')
-        .leftJoinAndSelect('genre.exchanges', 'exchange');
+        .leftJoinAndSelect('genre.exchanges', 'exchange')
+        .leftJoinAndSelect('genre.markets', 'market')
+        .select(['genre', 'market.id', 'market.name', 'exchange.id', 'exchange.name']);
         if (page > 0) {
             query.take(15);
             query.skip(15 * (page - 1));
         }
         return await query.orderBy('genre.name', 'ASC').getMany();
-        // .select(['genre.name', 'genre.marketId', 'exchange.id', 'exchange.name'])
-    }
-
-    async exchangesByGenres(ids: string[]): Promise<Genre[]> {
-        return await this.findByIds(ids, {select: ['name', 'marketId'], relations: ['exchanges']});
     }
 
     async genresForExchange(id: string): Promise<Genre[]> {
@@ -80,7 +81,9 @@ export class GenreRepository extends Repository<Genre> {
     async genresById(id: string): Promise<Genre> {
         const query = this.createQueryBuilder('genre')
         .andWhere('genre.id = :id', { id })
-        .leftJoinAndSelect('genre.exchanges', 'exchange');
+        .leftJoinAndSelect('genre.exchanges', 'exchange')
+        .leftJoinAndSelect('genre.markets', 'market')
+        .select(['genre', 'market.id', 'market.name', 'exchange.id', 'exchange.name']);
         try {
             const found = await query.getOne();
             if (found) {
@@ -94,10 +97,11 @@ export class GenreRepository extends Repository<Genre> {
         }
     }
 
-    async createGenre(createGenreDto: CreateGenreDto, marketId: string): Promise<Genre> {
+    async createGenre(createGenreDto: CreateGenreDto): Promise<Genre> {
         const genre = new Genre();
         genre.name = createGenreDto.name.replace(/,/g, ' ');
-        genre.marketId = marketId;
+        genre.markets = createGenreDto.markets;
+        genre.exchanges = createGenreDto.exchanges;
         genre.status = ListingStatus.TO_REVIEW;
         try {
             await genre.save();

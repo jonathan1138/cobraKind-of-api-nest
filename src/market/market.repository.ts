@@ -3,7 +3,7 @@ import { EntityRepository, Repository } from 'typeorm';
 import { CreateMarketDto } from './dto/create-market-dto';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
-import { Logger, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
+import { Logger, InternalServerErrorException, ConflictException, NotFoundException, NotAcceptableException } from '@nestjs/common';
 import { Category } from '../category/category.entity';
 import { Tag } from 'src/market-tag/tag.entity';
 import { MarketShape } from 'src/market-shape/market-shape.entity';
@@ -30,6 +30,18 @@ export class MarketRepository extends Repository<Market> {
             throw new NotFoundException('Market Not found');
         }
         return found;
+    }
+
+    async marketIdByName(name: string): Promise<string> {
+        const query = this.createQueryBuilder('market');
+        query.andWhere('market.name = :name', { name });
+        try {
+            const found = await query.getOne();
+            return found.id;
+        } catch (error) {
+           // this.logger.error(`Invalid Tag Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Name Supplied');
+        }
     }
 
     async getMarketByIdForViews(id: string): Promise<Market> {
@@ -138,6 +150,7 @@ export class MarketRepository extends Repository<Market> {
         market.category = category;
         market.status = ListingStatus.TO_REVIEW;
         market.tags = tags;
+        market.genres = [];
         market.marketShape = marketShape;
         market.marketShape.namingConvention = market.name;
         market.marketShape.subExchangeType = SubExchangeType.NONE;

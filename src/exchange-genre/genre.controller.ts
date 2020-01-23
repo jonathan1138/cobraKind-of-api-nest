@@ -15,7 +15,7 @@ export class GenreController {
 
     @Get()
     genres(@Query('page') page: number): Promise<Genre[]> {
-        return this.genreService.allGenres(page);
+        return this.genreService.getGenres(page);
     }
 
     @Get('/byId/:id')
@@ -23,24 +23,19 @@ export class GenreController {
         return this.genreService.genresById(id);
     }
 
-    @Get('/exchanges')
-    allExchanges(@Query('page') page: number): Promise<Genre[]> {
-        return this.genreService.allExchanges(page);
-    }
-
-    @Get('/exchangeIds')
-    exchangesByGenres(
-        @Body('ids') ids: string[],
-        ): Promise<Genre[]> {
-        return this.genreService.exchangesByGenres(ids);
-    }
+    // @Get('/exchangeIds')
+    // exchangesByGenres(
+    //     @Body('ids') ids: string[],
+    //     ): Promise<Genre[]> {
+    //     return this.genreService.exchangesByGenres(ids);
+    // }
 
     @Get('/:name')
     genreByName(@Param('name') name: string): Promise<Genre> {
         return this.genreService.genresByName(name);
     }
 
-    @Get('exchanges/:id')
+    @Get('exchange/:id')
     genresForExchange(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<Genre[]> {
         return this.genreService.genresForExchange(id);
@@ -71,14 +66,13 @@ export class GenreController {
             return this.genreService.updateGenreStatus(id, status, statusNote);
     }
 
-    @Post('/:marketid')
+    @Post()
     @UseGuards(AuthGuard())
     createGenre(
-        @Param('marketid', new ParseUUIDPipe()) marketId: string,
         @Body() createGenreDto: CreateGenreDto,
         @GetUser() user: UserEntity,
         ): Promise<Genre> {
-        return this.genreService.createGenre(createGenreDto, marketId, user.id);
+        return this.genreService.createGenre(createGenreDto, user.id);
     }
 
     @Delete('/:id')
