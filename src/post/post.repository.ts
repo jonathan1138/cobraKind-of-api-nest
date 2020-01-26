@@ -76,7 +76,7 @@ export class PostRepository extends Repository<PostEntity> {
             query.andWhere('post.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(post.name LIKE :search OR post.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(post.name) LIKE :search OR LOWER(post.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         return query;
     }

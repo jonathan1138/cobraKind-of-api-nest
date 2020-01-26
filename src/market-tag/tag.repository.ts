@@ -3,6 +3,7 @@ import { Tag } from './tag.entity';
 import { Logger, NotAcceptableException, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { CreateTagDto } from './dto/create-tag-dto';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @EntityRepository(Tag)
 export class TagRepository extends Repository<Tag> {
@@ -26,11 +27,18 @@ export class TagRepository extends Repository<Tag> {
         }
     }
 
-    async allMarkets(page: number = 1): Promise<Tag[]> {
+    async allMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Tag[]> {
         // return await this.find({select: ['name'], relations: ['markets']});
+        const { status, search } = filterDto;
         const query = this.createQueryBuilder('tag')
-        .leftJoinAndSelect('tag.markets', 'market');
-        // .select(['tag.name', 'tag.id', 'tag.categoryId', 'market.id', 'market.name']);
+        .leftJoinAndSelect('tag.markets', 'market')
+        .select(['tag', 'market.id', 'market.name']);
+        if (search) {
+            query.andWhere('(LOWER(tag.name) LIKE :search)', { search: `%${search.toLowerCase()}%` });
+        }
+        if (status) {
+            query.andWhere('tag.status = :status', { status });
+        }
         if (page > 0) {
             query.take(15);
             query.skip(15 * (page - 1));

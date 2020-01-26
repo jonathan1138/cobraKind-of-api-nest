@@ -66,7 +66,8 @@ export class ListingRatingRepository extends Repository<ListingRating> {
             query.andWhere('listingRating.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(listingRating.name LIKE :search OR listingRating.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(listingRating.name) LIKE :search OR LOWER(listingRating.info) LIKE :search)',
+            { search: `%${search.toLowerCase()}%` });
         }
         return query;
     }

@@ -1,4 +1,4 @@
-import { Controller, Get, ParseUUIDPipe, Param, Body, Query, Patch, UseGuards, Post, Delete } from '@nestjs/common';
+import { Controller, Get, ParseUUIDPipe, Param, Body, Query, Patch, UseGuards, Post, Delete, ValidationPipe } from '@nestjs/common';
 import { Genre } from './genre.entity';
 import { GenreService } from './genre.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -7,6 +7,7 @@ import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { ListingStatusValidationPipe } from 'src/shared/pipes/listingStatus-validation.pipe';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Controller('genre')
 export class GenreController {
@@ -14,8 +15,10 @@ export class GenreController {
     constructor( private genreService: GenreService ) {}
 
     @Get()
-    genres(@Query('page') page: number): Promise<Genre[]> {
-        return this.genreService.getGenres(page);
+    async genres(
+        @Query('page') page: number,
+        @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto): Promise<Genre[]> {
+        return await this.genreService.getGenres(filterDto, page);
     }
 
     @Get('/byId/:id')

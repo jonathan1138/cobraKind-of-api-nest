@@ -173,7 +173,7 @@ export class ExchangeRepository extends Repository<Exchange> {
             query.andWhere('exchange.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(exchange.name LIKE :search OR exchange.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(exchange.name) LIKE :search OR LOWER(exchange.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         if (page > 0) {
             query.take(15);

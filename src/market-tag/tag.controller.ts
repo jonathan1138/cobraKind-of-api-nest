@@ -7,6 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateTagDto } from './dto/create-tag-dto';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Controller('tag')
 export class TagController {
@@ -14,7 +15,8 @@ export class TagController {
 constructor( private tagService: TagService ) {}
 
     @Get()
-    tags(@Query('page') page: number): Promise<Tag[]> {
+    tag(
+        @Query('page') page: number): Promise<Tag[]> {
         return this.tagService.allTags(page);
     }
 
@@ -23,9 +25,11 @@ constructor( private tagService: TagService ) {}
         return this.tagService.tagsById(id);
     }
 
-    @Get('/markets')
-    allMarkets(@Query('page') page: number): Promise<Tag[]> {
-        return this.tagService.allMarkets(page);
+    @Get('/market')
+    allMarkets(
+        @Query('page') page: number,
+        @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto): Promise<Tag[]> {
+        return this.tagService.allMarkets(filterDto, page);
     }
 
     @Get('/marketIds')

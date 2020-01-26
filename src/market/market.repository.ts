@@ -130,7 +130,7 @@ export class MarketRepository extends Repository<Market> {
             query.andWhere('market.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(market.name LIKE :search OR market.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(market.name) LIKE :search OR LOWER(market.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         if (page > 0) {
             query.take(15);

@@ -57,7 +57,7 @@ export class SubItemRepository extends Repository<SubItem> {
             query.andWhere('subItem.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(subItem.name LIKE :search OR subItem.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(subItem.name) LIKE :search OR LOWER(subItem.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         return query;
     }

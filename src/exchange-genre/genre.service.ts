@@ -9,6 +9,7 @@ import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { Market } from '../market/market.entity';
 import { Exchange } from 'src/exchange/exchange.entity';
 import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Injectable()
 export class GenreService {
@@ -21,8 +22,8 @@ export class GenreService {
         private exchangeRepository: ExchangeRepository,
     ) {}
 
-    async getGenres(page: number = 1): Promise<Genre[]> {
-        return this.genreRepository.getGenres(page);
+    async getGenres(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Genre[]> {
+        return this.genreRepository.getGenres(filterDto, page);
     }
 
     async genresByMarket(id: string): Promise<Genre[]> {

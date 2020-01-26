@@ -7,6 +7,7 @@ import { CategoryRepository } from 'src/category/category.repository';
 import { CreateTagDto } from './dto/create-tag-dto';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { ProfileService } from 'src/user-profile/profile.service';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Injectable()
 export class TagService {
@@ -22,8 +23,8 @@ export class TagService {
         return this.tagRepository.allTags(page);
     }
 
-    async allMarkets(page: number = 1): Promise<Tag[]> {
-        return this.tagRepository.allMarkets(page);
+    async allMarkets(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Tag[]> {
+        return this.tagRepository.allMarkets(filterDto, page);
     }
 
     async marketsByTags(ids: string[]): Promise<Tag[]> {

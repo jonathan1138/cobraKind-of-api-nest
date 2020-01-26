@@ -20,11 +20,12 @@ export class ExchangeController {
     constructor(private exchangeService: ExchangeService) {}
 
     @Get()
-    getExchanges(
+    async getExchanges(
         @Query('page') page: number,
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
         ): Promise<Exchange[]> {
-        return this.exchangeService.getExchanges(filterDto, page);
+        // await new Promise(resolve => setTimeout(resolve, 3000));
+        return await this.exchangeService.getExchanges(filterDto, page);
     }
 
     @Get('/genre')

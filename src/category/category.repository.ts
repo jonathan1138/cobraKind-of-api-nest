@@ -65,7 +65,7 @@ export class CategoryRepository extends Repository<Category> {
             query.andWhere('category.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(category.name LIKE :search OR category.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(category.name) LIKE :search OR LOWER(category.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         if (page > 0) {
             query.take(15);

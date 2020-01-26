@@ -4,6 +4,7 @@ import { Logger, NotAcceptableException, InternalServerErrorException, ConflictE
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { CreateGenreDto } from './dto/create-genre-dto';
 import { Market } from 'src/market/market.entity';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @EntityRepository(Genre)
 export class GenreRepository extends Repository<Genre> {
@@ -30,12 +31,19 @@ export class GenreRepository extends Repository<Genre> {
     //     return await this.findByIds(ids, {select: ['name', 'marketId'], relations: ['exchanges']});
     // }
 
-    async getGenres(page: number = 1): Promise<Genre[]> {
+    async getGenres(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Genre[]> {
         // return await this.find({select: ['name'], relations: ['exchanges']});
+        const { status, search } = filterDto;
         const query = this.createQueryBuilder('genre')
         .leftJoinAndSelect('genre.exchanges', 'exchange')
         .leftJoinAndSelect('genre.markets', 'market')
         .select(['genre', 'market.id', 'market.name', 'exchange.id', 'exchange.name']);
+        if (search) {
+            query.andWhere('(LOWER(genre.name) LIKE :search)', { search: `%${search.toLowerCase()}%` });
+        }
+        if (status) {
+            query.andWhere('genre.status = :status', { status });
+        }
         if (page > 0) {
             query.take(15);
             query.skip(15 * (page - 1));

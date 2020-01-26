@@ -77,9 +77,7 @@ export class FileReaderService {
 
     async processMarketFileData(markets: FileMarketData[]): Promise<string> {
         let recordSuccess = 0;
-        let recordFail = 0;
-        for (const item of markets) {
-            // process image array
+        const processedMarkets = markets.map(async (item) => {
             let imageArray = [];
             if (item[2].length) {
                 imageArray = item[2].split('|');
@@ -95,15 +93,20 @@ export class FileReaderService {
                     tags: tagsArray,
                 };
             try {
-                const result = await this.marketService.createMarket(market, item[4], this.userId);
-                if (result) { recordSuccess++; }
+                await this.marketService.createMarket(market, item[4], this.userId)
+                .then((res) => {
+                    recordSuccess++;
+                });
             } catch (error) {
-                recordFail++;
-                this.logger.error(`Failed to create a Market: `, error.stack);
+                this.logger.error(`Failed to find a Market: `, error.stack);
                 // throw new InternalServerErrorException();
             }
-        }
-        const report = `Processed ${recordSuccess} records successfully / ${recordFail} records failed`;
+        });
+        const result = await Promise.all(processedMarkets)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${markets.length}`;
         Logger.log(report);
         return report;
     }
@@ -121,23 +124,27 @@ export class FileReaderService {
 
     async processTagFileData(tags: FileTagData[]): Promise<string> {
         let recordSuccess = 0;
-        let recordFail = 0;
-        for (const item of tags) {
-            // process image array
+
+        const processedTags = tags.map(async (item) => {
             const tag: CreateTagDto = {
-                    name: item[0],
-                    markets: [],
-                };
+                name: item[0],
+                markets: [],
+            };
             try {
-                    await this.tagService.createTag(tag, this.tagCatId, this.userId);
+                await this.tagService.createTag(tag, this.tagCatId, this.userId)
+                .then((res) => {
                     recordSuccess++;
-                } catch (error) {
-                    recordFail++;
-                    this.logger.error(`Failed to create a Tag: `, error.stack);
-                    // throw new InternalServerErrorException();
-                }
-        }
-        const report = `Processed ${recordSuccess} records successfully / ${recordFail} failed`;
+                });
+            } catch (error) {
+                this.logger.error(`Failed to find a Tag: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+        });
+        const result = await Promise.all(processedTags)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${tags.length}`;
         Logger.log(report);
         return report;
     }
@@ -156,7 +163,7 @@ export class FileReaderService {
     async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string>  {
         let recordSuccess = 0;
         let mktId = '';
-        const processedRecords = exchanges.map(async (item) => {
+        const processedExchanges = exchanges.map(async (item) => {
             let imageArray = [];
             if (item[2].length) {
                 imageArray = item[2].split('|');
@@ -193,7 +200,7 @@ export class FileReaderService {
                 // throw new InternalServerErrorException();
             }
         });
-        const result = await Promise.all(processedRecords)
+        const result = await Promise.all(processedExchanges)
         .then(() => {
             return recordSuccess;
         });

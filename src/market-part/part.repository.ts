@@ -58,7 +58,7 @@ export class PartRepository extends Repository<Part> {
             query.andWhere('part.status = :status', { status });
         }
         if (search) {
-            query.andWhere('(part.name LIKE :search OR part.info LIKE :search)', { search: `%${search}%` });
+            query.andWhere('(LOWER(part.name) LIKE :search OR LOWER(part.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
         return query;
     }
