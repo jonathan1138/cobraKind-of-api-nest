@@ -5,8 +5,8 @@ import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filte
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Market } from 'src/market/market.entity';
 import { CreatePartDto } from './dto/create-part.dto';
-import { CreatedYear } from 'src/exchange-year/year.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 
 @EntityRepository(Part)
 export class PartRepository extends Repository<Part> {

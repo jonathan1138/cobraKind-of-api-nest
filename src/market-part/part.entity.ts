@@ -1,8 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity } from 'typeorm';
 import { Market } from 'src/market/market.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
 
 @Entity()
 export class Part extends BaseEntity {

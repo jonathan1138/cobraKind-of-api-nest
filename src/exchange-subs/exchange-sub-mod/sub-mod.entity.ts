@@ -1,8 +1,8 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne } from 'typeorm';
-import { ListingStatus } from '../shared/enums/listing-status.enum';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
+import { ListingStatus } from '../../shared/enums/listing-status.enum';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
 
 @Entity()
 @Unique(['name'])

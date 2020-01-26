@@ -3,11 +3,11 @@ import { SubItem } from './sub-item.entity';
 import { Logger, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateSubItemDto } from './dto/create-sub-item-dto';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 
 @EntityRepository(SubItem)
 export class SubItemRepository extends Repository<SubItem> {

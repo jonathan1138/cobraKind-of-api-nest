@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
-import { Exchange } from '../exchange/exchange.entity';
+import { Exchange } from '../market-exchange/exchange.entity';
 import { PostType } from '../shared/enums/post-type.enum';
 
 @Entity()

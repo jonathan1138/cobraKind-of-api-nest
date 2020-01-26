@@ -3,7 +3,7 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { S3UploadService } from 'src/shared/services/s3Uploader/awsS3Upload.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 import { SubItemRepository } from './sub-item.repository';
 import { SubItem } from './sub-item.entity';
 import { CreateSubItemDto } from './dto/create-sub-item-dto';
@@ -12,10 +12,10 @@ import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
-import { CreatedYear } from 'src/exchange-year/year.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { CreatedYearRepository } from 'src/exchange-year/year.repository';
+import { CreatedYear } from 'src/created-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { ManufacturerRepository } from 'src/manufacturer/manufacturer.repository';
+import { CreatedYearRepository } from 'src/created-year/year.repository';
 
 @Injectable()
 export class SubItemService {

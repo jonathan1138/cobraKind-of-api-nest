@@ -6,11 +6,11 @@ import { CreateExchangeDto } from './dto/create-exchange-dto';
 import { Market } from 'src/market/market.entity';
 import { Genre } from 'src/exchange-genre/genre.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
-import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
+import { SubVariation } from 'src/exchange-subs/exchange-sub-variation/sub-variation.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
-import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
-import { ManufacturerRepository } from '../exchange-manufacturer/manufacturer.repository';
+import { Manufacturer } from '../manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
+import { ManufacturerRepository } from '../manufacturer/manufacturer.repository';
 
 @EntityRepository(Exchange)
 export class ExchangeRepository extends Repository<Exchange> {

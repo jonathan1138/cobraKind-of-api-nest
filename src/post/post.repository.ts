@@ -4,7 +4,7 @@ import { Logger, InternalServerErrorException, NotFoundException, ConflictExcept
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreatePostDto } from './dto/create-post-dto';
 import { ListingStatus } from '../shared/enums/listing-status.enum';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { Market } from 'src/market/market.entity';
 

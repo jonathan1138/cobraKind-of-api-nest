@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable, BaseEntity } from 'typeorm';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Market } from 'src/market/market.entity';
 

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ExchangeRepository } from '../exchange/exchange.repository';
+import { ExchangeRepository } from '../market-exchange/exchange.repository';
 import { UserRepository } from 'src/user/user.repository';
 import { ListingRatingRepository } from './listing-rating.repository';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';

@@ -11,8 +11,8 @@ import { TagService } from '../../../market-tag/tag.service';
 import { TagFileReader } from './classes/tagFileReader';
 import { CreateTagDto } from 'src/market-tag/dto/create-tag-dto';
 import { FileTagData } from './types/fileTagData';
-import { CreateExchangeDto } from 'src/exchange/dto/create-exchange-dto';
-import { ExchangeService } from 'src/exchange/exchange.service';
+import { CreateExchangeDto } from 'src/market-exchange/dto/create-exchange-dto';
+import { ExchangeService } from 'src/market-exchange/exchange.service';
 import { FileExchangeData } from './types/fileExchangeData';
 import { ExchangeFileReader } from './classes/exchangeFileReader';
 @Injectable()

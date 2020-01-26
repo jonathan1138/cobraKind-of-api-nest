@@ -3,7 +3,7 @@ import { Logger, InternalServerErrorException, NotFoundException  } from '@nestj
 import { ListingRating } from './listing-rating.entity';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateListingRatingDto } from './dto/create-listing-rating-dto';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { PostType } from '../shared/enums/post-type.enum';
 

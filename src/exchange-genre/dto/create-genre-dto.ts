@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
-import { Exchange } from '../../exchange/exchange.entity';
+import { Exchange } from '../../market-exchange/exchange.entity';
 import { Market } from '../../market/market.entity';
 
 export class CreateGenreDto {

@@ -4,7 +4,7 @@ import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { Category } from 'src/category/category.entity';
 import { Tag } from 'src/market-tag/tag.entity';
 import { MarketShape } from '../market-shape/market-shape.entity';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { Part } from 'src/market-part/part.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { PostEntity } from 'src/post/post.entity';

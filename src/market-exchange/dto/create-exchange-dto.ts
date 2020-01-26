@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsInt, Min, Max } from 'class-validator';
 import { Genre } from 'src/exchange-genre/genre.entity';
-import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
+import { SubVariation } from 'src/exchange-subs/exchange-sub-variation/sub-variation.entity';
 import { Transform } from 'class-transformer';
 import { max } from 'rxjs/operators';
 

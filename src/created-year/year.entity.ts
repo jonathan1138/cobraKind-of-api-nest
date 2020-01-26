@@ -1,9 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, OneToMany } from 'typeorm';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { integer } from 'aws-sdk/clients/cloudfront';
-import { SubItem } from 'src/exchange-sub-item/sub-item.entity';
+import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
 import { Part } from '../market-part/part.entity';
-import { SubMod } from 'src/exchange-sub-mod/sub-mod.entity';
+import { SubMod } from 'src/exchange-subs/exchange-sub-mod/sub-mod.entity';
 
 @Entity()
 export class CreatedYear extends BaseEntity {

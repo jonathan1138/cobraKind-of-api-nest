@@ -9,10 +9,10 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Part } from './part.entity';
 import { CreatePartDto } from './dto/create-part.dto';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
-import { CreatedYear } from 'src/exchange-year/year.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { CreatedYearRepository } from 'src/exchange-year/year.repository';
+import { CreatedYear } from 'src/created-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { ManufacturerRepository } from 'src/manufacturer/manufacturer.repository';
+import { CreatedYearRepository } from 'src/created-year/year.repository';
 
 @Injectable()
 export class PartService {

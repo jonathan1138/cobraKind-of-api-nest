@@ -1,13 +1,13 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique,
      ManyToOne, ManyToMany, JoinTable, OneToOne, JoinColumn, OneToMany } from 'typeorm';
-import { ListingStatus } from '../shared/enums/listing-status.enum';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { UserEntity } from '../user/entities/user.entity';
+import { ListingStatus } from '../../shared/enums/listing-status.enum';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { UserEntity } from '../../user/entities/user.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { PostEntity } from 'src/post/post.entity';
-import { Manufacturer } from 'src/exchange-manufacturer/manufacturer.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
+import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
 
 @Entity()
 @Unique(['name'])

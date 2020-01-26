@@ -9,15 +9,15 @@ import { GenreRepository } from 'src/exchange-genre/genre.repository';
 import { ExchangeRepository } from './exchange.repository';
 import { CategoryRepository } from 'src/category/category.repository';
 import { PartRepository } from 'src/market-part/part.repository';
-import { SubVariationRepository } from '../exchange-sub-variation/sub-variation.repository';
+import { SubVariationRepository } from '../exchange-subs/exchange-sub-variation/sub-variation.repository';
 import { UserRepository } from '../user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from '../user-profile/profile.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
-import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
-import { ManufacturerRepository } from 'src/exchange-manufacturer/manufacturer.repository';
-import { CreatedYearRepository } from '../exchange-year/year.repository';
+import { SubItemRepository } from 'src/exchange-subs/exchange-sub-item/sub-item.repository';
+import { ManufacturerRepository } from 'src/manufacturer/manufacturer.repository';
+import { CreatedYearRepository } from '../created-year/year.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, ExchangeRepository, MarketRepository,

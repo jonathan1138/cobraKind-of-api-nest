@@ -8,7 +8,7 @@ import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateExchangeDto } from './dto/create-exchange-dto';
 import { Genre } from 'src/exchange-genre/genre.entity';
-import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
+import { SubVariation } from 'src/exchange-subs/exchange-sub-variation/sub-variation.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/user-auth/decorators/get-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';

@@ -3,15 +3,15 @@ import { BaseEntity, Entity, PrimaryGeneratedColumn, Column,
 import { ListingStatus } from '../shared/enums/listing-status.enum';
 import { Market } from 'src/market/market.entity';
 import { Genre } from 'src/exchange-genre/genre.entity';
-import { SubItem } from 'src/exchange-sub-item/sub-item.entity';
-import { SubMod } from 'src/exchange-sub-mod/sub-mod.entity';
-import { SubVariation } from 'src/exchange-sub-variation/sub-variation.entity';
+import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
+import { SubMod } from 'src/exchange-subs/exchange-sub-mod/sub-mod.entity';
+import { SubVariation } from 'src/exchange-subs/exchange-sub-variation/sub-variation.entity';
 import { PostEntity } from '../post/post.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ListingRating } from '../exchange-listing-rating/listing-rating.entity';
 import { PriceRatingInfo } from '../exchange-price-rating-info/price-rating-info.entity';
-import { Manufacturer } from '../exchange-manufacturer/manufacturer.entity';
-import { CreatedYear } from 'src/exchange-year/year.entity';
+import { Manufacturer } from '../manufacturer/manufacturer.entity';
+import { CreatedYear } from 'src/created-year/year.entity';
 
 @Entity()
 @Unique(['name'])

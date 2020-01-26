@@ -10,7 +10,7 @@ import { ProfileModule } from '../user-profile/profile.module';
 import { ProfileRepository } from 'src/user-profile/profile.repository';
 import { UserRepository } from 'src/user/user.repository';
 import { MarketRepository } from 'src/market/market.repository';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProfileRepository, MarketRepository,

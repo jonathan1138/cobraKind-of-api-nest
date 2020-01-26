@@ -5,12 +5,12 @@ import { S3UploadService } from '../shared/services/s3Uploader/awsS3Upload.servi
 import { GenreController } from './genre.controller';
 import { GenreService } from './genre.service';
 import { GenreRepository } from './genre.repository';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 import { MarketRepository } from 'src/market/market.repository';
 import { CategoryRepository } from 'src/category/category.repository';
 import { PartRepository } from 'src/market-part/part.repository';
 import { TagRepository } from 'src/market-tag/tag.repository';
-import { SubItemRepository } from 'src/exchange-sub-item/sub-item.repository';
+import { SubItemRepository } from 'src/exchange-subs/exchange-sub-item/sub-item.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CategoryRepository, MarketRepository, GenreRepository,

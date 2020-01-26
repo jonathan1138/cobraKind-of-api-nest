@@ -2,10 +2,10 @@ import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTabl
 import { PostType } from '../shared/enums/post-type.enum';
 import { UserEntity } from '../user/entities/user.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
-import { Exchange } from 'src/exchange/exchange.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Market } from 'src/market/market.entity';
-import { SubItem } from 'src/exchange-sub-item/sub-item.entity';
+import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
 
 @Entity()
 export class PostEntity extends BaseEntity {

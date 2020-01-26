@@ -9,7 +9,7 @@ import { PostEntity } from './post.entity';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { UserRepository } from 'src/user/user.repository';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { PriceRatingInfoRepository } from 'src/exchange-price-rating-info/price-rating-info.repository';

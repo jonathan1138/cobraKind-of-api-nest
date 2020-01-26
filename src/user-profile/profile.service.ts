@@ -7,8 +7,8 @@ import { TagRepository } from 'src/market-tag/tag.repository';
 import { Tag } from 'src/market-tag/tag.entity';
 import { Market } from '../market/market.entity';
 import { MarketRepository } from 'src/market/market.repository';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 
 @Injectable()
 export class ProfileService {

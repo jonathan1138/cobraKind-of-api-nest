@@ -1,8 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, OneToMany } from 'typeorm';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { SubItem } from 'src/exchange-sub-item/sub-item.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
 import { Part } from '../market-part/part.entity';
-import { SubMod } from '../exchange-sub-mod/sub-mod.entity';
+import { SubMod } from '../exchange-subs/exchange-sub-mod/sub-mod.entity';
 
 @Entity()
 export class Manufacturer extends BaseEntity {

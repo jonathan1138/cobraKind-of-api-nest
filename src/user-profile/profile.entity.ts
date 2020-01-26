@@ -3,9 +3,9 @@ import { UserEntity } from '../user/entities/user.entity';
 import { Market } from 'src/market/market.entity';
 import { Tag } from 'src/market-tag/tag.entity';
 import { PostEntity } from 'src/post/post.entity';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { SubItem } from '../exchange-sub-item/sub-item.entity';
-import { SubMod } from '../exchange-sub-mod/sub-mod.entity';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { SubItem } from '../exchange-subs/exchange-sub-item/sub-item.entity';
+import { SubMod } from '../exchange-subs/exchange-sub-mod/sub-mod.entity';
 import { Part } from '../market-part/part.entity';
 
 @Entity()

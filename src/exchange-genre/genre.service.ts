@@ -7,8 +7,8 @@ import { MarketRepository } from 'src/market/market.repository';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { Market } from '../market/market.entity';
-import { Exchange } from 'src/exchange/exchange.entity';
-import { ExchangeRepository } from 'src/exchange/exchange.repository';
+import { Exchange } from 'src/market-exchange/exchange.entity';
+import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Injectable()
