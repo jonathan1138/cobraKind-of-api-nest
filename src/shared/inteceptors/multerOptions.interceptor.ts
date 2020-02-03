@@ -45,6 +45,9 @@ export const multerOptions = {
                 case 'exchanges':
                     uploadPath = multerConfig.dest + '/' + paramPath;
                     break;
+                case 'parts':
+                    uploadPath = multerConfig.dest + '/' + paramPath;
+                    break;
                 default:
                     uploadPath = multerConfig.dest + '/' + 'orphans';
             }

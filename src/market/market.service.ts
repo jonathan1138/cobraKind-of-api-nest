@@ -16,6 +16,8 @@ import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 import { ProfileService } from 'src/user-profile/profile.service';
+import { Genre } from 'src/exchange-genre/genre.entity';
+import { GenreRepository } from 'src/exchange-genre/genre.repository';
 
 @Injectable()
 export class MarketService {
@@ -26,6 +28,8 @@ export class MarketService {
         private categoryRepository: CategoryRepository,
         @InjectRepository(TagRepository)
         private tagRepository: TagRepository,
+        @InjectRepository(GenreRepository)
+        private genreRepository: GenreRepository,
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
         @InjectRepository(UserIp)
@@ -95,8 +99,7 @@ export class MarketService {
         const category = await this.categoryRepository.getCategoryById(categoryId);
         const isMarketNameUnique = await this.marketRepository.isNameUnique(createMarketDto.name);
         const { tags } = createMarketDto;
-        const processType = 'CREATE';
-        const processedTags = await this.processTags(category.id, tags, processType);
+        const processedTags = await this.processTags(category.id, tags);
 
         if ( isMarketNameUnique ) {
             if ( Array.isArray(images) && images.length > 0) {
@@ -131,12 +134,6 @@ export class MarketService {
         market.status = status;
         if (!statusNote) {
             switch (market.status) {
-                // case ListingStatus.TO_REVIEW:
-                //   market.statusNote = ListingStatusNote.TO_REVIEW;
-                //   break;
-                // case ListingStatus.APPROVED:
-                //   market.statusNote = ListingStatusNote.APPROVED;
-                //   break;
                 case ListingStatus.REJECTED:
                   market.statusNote = ListingStatusNote.REJECTED;
                   break;
@@ -152,12 +149,23 @@ export class MarketService {
 
     async updateMarketTags(id: string, tags: string[] ): Promise<Market> {
         const market = await this.marketRepository.getMarketById(id);
-        const processType = 'UPDATE';
         if (tags) {
-            const processedTags = await this.processTags(market.categoryId, tags, processType);
+            const processedTags = await this.processTags(market.categoryId, tags);
             processedTags.length ? market.tags = processedTags : market.tags = [];
         } else {
             market.tags = [];
+        }
+        await market.save();
+        return market;
+    }
+
+    async updateMarketGenres(id: string, genres: string[] ): Promise<Market> {
+        const market = await this.marketRepository.getMarketById(id);
+        if (genres) {
+            const processedGenres = await this.processGenres(genres);
+            processedGenres.length ? market.genres = processedGenres : market.genres = [];
+        } else {
+            market.genres = [];
         }
         await market.save();
         return market;
@@ -186,7 +194,7 @@ export class MarketService {
         return arrayImages;
     }
 
-    async processTags(catId: Uuid, tags: string[], processType: string): Promise<Tag[]> {
+    async processTags(catId: string, tags: string[]): Promise<Tag[]> {
         const newTags: Tag[] = [];
         let assureArray = [];
         if ( !Array.isArray(tags) ) {
@@ -194,7 +202,7 @@ export class MarketService {
         } else {
             assureArray = [...tags];
         }
-        const uploadPromises = assureArray.map(async (tag, index: number) => {
+        const uploadPromises = assureArray.map(async (tag) => {
             const newTag = new Tag();
             const foundTag = await this.tagRepository.tagsByName(tag);
             if (foundTag) {
@@ -212,6 +220,33 @@ export class MarketService {
         await Promise.all(uploadPromises);
         return newTags;
     }
+
+    async processGenres(genres: string[]): Promise<Genre[]> {
+        const newGenres: Genre[] = [];
+        let assureArray = [];
+        if ( !Array.isArray(genres) ) {
+            assureArray.push(genres);
+        } else {
+            assureArray = [...genres];
+        }
+        const uploadPromises = assureArray.map(async (genre, index: number) => {
+            const newGenre = new Genre();
+            const foundGenre = await this.genreRepository.genresByName(genre);
+            if (foundGenre) {
+            //    if ( (foundGenre.categoryId === catId) && (processType.localeCompare('CREATE')) ) {
+                    newGenre.id = foundGenre.id;
+            //    } else {
+            //        throw new ConflictException('This tag exists in another category / tags must be unique per category');
+            //    }
+            }
+            newGenre.name = genre;
+            newGenre.status = ListingStatus.TO_REVIEW;
+            newGenres.push(newGenre);
+        });
+        await Promise.all(uploadPromises);
+        return newGenres;
+    }
+
     // getAllMarkets(): Market[] {
     //     const copiedMarkets = JSON.parse(JSON.stringify(this.Markets));
     //     return copiedMarkets;

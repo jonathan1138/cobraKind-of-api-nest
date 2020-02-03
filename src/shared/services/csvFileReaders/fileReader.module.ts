@@ -20,12 +20,14 @@ import { GenreRepository } from '../../../exchange-genre/genre.repository';
 import { SubVariationRepository } from '../../../exchange-subs/exchange-sub-variation/sub-variation.repository';
 import { ManufacturerRepository } from '../../../manufacturer/manufacturer.repository';
 import { CreatedYearRepository } from '../../../created-year/year.repository';
+import { PartRepository } from '../../../market-part/part.repository';
+import { PartService } from '../../../market-part/part.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
         UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository,
-        ManufacturerRepository, CreatedYearRepository]), AuthModule],
+        ManufacturerRepository, CreatedYearRepository, PartRepository]), AuthModule],
     controllers: [FileReaderController],
-    providers: [FileReaderService, CategoryService, MarketService, S3UploadService, ProfileService, TagService, ExchangeService],
+    providers: [FileReaderService, CategoryService, MarketService, S3UploadService, ProfileService, TagService, ExchangeService, PartService],
 })
 export class FileReaderModule {}

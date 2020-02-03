@@ -16,6 +16,7 @@ import { CreatedYear } from 'src/created-year/year.entity';
 import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 import { ManufacturerRepository } from 'src/manufacturer/manufacturer.repository';
 import { CreatedYearRepository } from 'src/created-year/year.repository';
+import { UserLike } from 'src/user/entities/user-like.entity';
 
 @Injectable()
 export class SubItemService {
@@ -44,7 +45,7 @@ export class SubItemService {
     }
 
     async getSubItemByIdIncrementView(id: string, ipAddress: string): Promise<SubItem> {
-      const subItem =  await this.subItemRepository.getSubItemByIdWithIp(id);
+      const subItem =  await this.subItemRepository.getSubItemByIdForViews(id);
       if (subItem) {
           const userIp = new UserIp();
           userIp.ipAddress = ipAddress;
@@ -52,13 +53,13 @@ export class SubItemService {
           if (foundIp) {
               userIp.id = foundIp.id;
           }
-          if ( !subItem.userIpSubItems.find(x => x.ipAddress === ipAddress) ) {
-              subItem.userIpSubItems.push(userIp);
-              this.subItemRepository.incrementView(id);
+          if ( !subItem.userIpViews.find(x => x.ipAddress === ipAddress) ) {
+              subItem.userIpViews.push(userIp);
+              subItem.views++;
               return await subItem.save();
           }
       }
-      delete subItem.userIpSubItems;
+      delete subItem.userIpViews;
       return subItem;
   }
 
@@ -127,14 +128,15 @@ export class SubItemService {
         return subItem;
     }
 
-    async uploadSubItemImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
+    async uploadSubItemImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
         if (image) {
             const subItem = await this.subItemRepository.getSubItemById(id);
-            if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.MARKET_IMG_FOLDER, filenameInPath);
-                subItem.images.push(s3ImgUrl);
-                await subItem.save();
-            }
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.SUBITEM_IMG_FOLDER, filenameInPath);
+            s3ImgUrlArray.forEach(item => {
+                subItem.images.push(item);
+            });
+            await subItem.save();
+            return subItem.images;
         } else {
             throw new NotAcceptableException(`File not found`);
         }
@@ -173,54 +175,26 @@ export class SubItemService {
         }
     }
 
-    // async upvote(id: string, userId: string) {
-    //     let subItem = await this.subItemRepository.findOne({
-    //       where: { id },
-    //       relations: ['upvotes', 'downvotes'],
-    //     });
-    //     const user = await this.userRepository.findOne({ where: { id: userId } });
-    //     subItem = await this.vote(subItem, user, ListingRating.UP);
-    //     return this.subItemToResponseObject(subItem);
-    //   }
-
-    // async downvote(id: string, userId: string) {
-    //   let subItem = await this.subItemRepository.findOne({
-    //     where: { id },
-    //     relations: ['upvotes', 'downvotes'],
-    //   });
-    //   const user = await this.userRepository.findOne({ where: { id: userId } });
-    //   subItem = await this.vote(subItem, user, ListingRating.DOWN);
-    //   return this.subItemToResponseObject(subItem);
-    // }
-
-    // private subItemToResponseObject(subItem: SubItem): SubItem {
-    //     const responseObject: any = {
-    //       ...subItem,
-    //     };
-    //     if (subItem.upvotes) {
-    //       responseObject.upvotes = subItem.upvotes.length;
-    //     }
-    //     if (subItem.downvotes) {
-    //       responseObject.downvotes = subItem.downvotes.length;
-    //     }
-    //     return responseObject;
-    // }
-
-    // private async vote(subItem: SubItem, user: UserEntity, vote: ListingRating): Promise<SubItem> {
-    //     const opposite = vote === ListingRating.UP ? ListingRating.DOWN : ListingRating.UP;
-    //     if (
-    //       subItem[opposite].filter(voter => voter.id === user.id).length > 0 ||
-    //       subItem[vote].filter(voter => voter.id === user.id).length > 0
-    //     ) {
-    //       subItem[opposite] = subItem[opposite].filter(voter => voter.id !== user.id);
-    //       subItem[vote] = subItem[vote].filter(voter => voter.id !== user.id);
-    //       await this.subItemRepository.save(subItem);
-    //     } else if (subItem[vote].filter(voter => voter.id === user.id).length < 1) {
-    //       subItem[vote].push(user);
-    //       await this.subItemRepository.save(subItem);
-    //     } else {
-    //         throw new InternalServerErrorException('Failed to cast Vote...');
-    //     }
-    //     return subItem;
-    // }
+    async updateVote(userId: string, id: string): Promise<SubItem> {
+        const subItem = await this.subItemRepository.getSubItemById(id);
+        const user = await this.userRepository.findOne(userId, {relations: ['likes']});
+        const userLike = new UserLike();
+        const isNewFavorite = user.likes.findIndex(subI => subI.id === subItem.id) < 0;
+        if (isNewFavorite) {
+            userLike.id = subItem.id;
+            userLike.name = subItem.name;
+            user.likes.push(userLike);
+            subItem.likes++;
+            await this.userRepository.save(user);
+            return await subItem.save();
+        } else {
+            const deleteIndex = user.likes.findIndex(subI => subI.id === subItem.id);
+            if (deleteIndex >= 0) {
+                user.likes.splice(deleteIndex, 1);
+                subItem.likes--;
+                await this.userRepository.save(user);
+                return await subItem.save();
+            }
+        }
+    }
 }

@@ -48,6 +48,15 @@ export class ProfileController {
             return this.profileService.updateWatchedExchanges(id, exchanges);
     }
 
+    @Patch('/parts/:id')
+    @UseGuards(AuthGuard())
+    updateWatchedParts(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body('parts') parts: string[],
+        ): Promise<void> {
+            return this.profileService.updateWatchedParts(id, parts);
+    }
+
     // @Patch('/tagsCreated/:id')
     // @UseGuards(AuthGuard())
     // updateUserCreatedTags(

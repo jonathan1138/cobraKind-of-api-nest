@@ -50,7 +50,7 @@ export class SubItem extends BaseEntity {
 
     @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
-    userIpSubItems: UserIp[];
+    userIpViews: UserIp[];
 
     @OneToOne(() => PriceRatingInfo, { // profile => profile.user,
         // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm

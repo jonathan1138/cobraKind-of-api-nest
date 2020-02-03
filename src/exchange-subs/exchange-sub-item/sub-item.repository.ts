@@ -41,6 +41,14 @@ export class SubItemRepository extends Repository<SubItem> {
         return found;
     }
 
+    async getSubItemByIdForViews(id: string): Promise<SubItem> {
+        const found = await this.findOne(id, {relations: ['userIpViews']});
+        if (!found) {
+            throw new NotFoundException('SubItem Not found');
+        }
+        return found;
+    }
+
     async getExchangesForSubItem(id: string): Promise<SubItem> {
         const found = await this.findOne(id, {relations: ['exchanges']});
         if (!found) {

@@ -13,8 +13,9 @@ import { UserRepository } from '../user/user.repository';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from 'src/user-profile/profile.repository';
+import { GenreRepository } from '../exchange-genre/genre.repository';
 @Module({
-  imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
+  imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository, GenreRepository,
     ExchangeRepository, PartRepository, UserRepository,
     ProfileRepository, UserIp]), AuthModule],
   controllers: [MarketController],

@@ -15,6 +15,10 @@ import { CreateExchangeDto } from 'src/market-exchange/dto/create-exchange-dto';
 import { ExchangeService } from 'src/market-exchange/exchange.service';
 import { FileExchangeData } from './types/fileExchangeData';
 import { ExchangeFileReader } from './classes/exchangeFileReader';
+import { PartService } from 'src/market-part/part.service';
+import { FilePartData } from './types/filePartData';
+import { CreatePartDto } from 'src/market-part/dto/create-part.dto';
+import { PartFileReader } from './classes/partFileReader';
 @Injectable()
 export class FileReaderService {
     constructor(
@@ -22,6 +26,7 @@ export class FileReaderService {
         private marketService: MarketService,
         private tagService: TagService,
         private exchangeService: ExchangeService,
+        private partService: PartService,
     ) {}
     private logger = new Logger('FileReaderService');
     private userId = 'd86eafeb-f7b1-443b-809b-57454ec9e208';
@@ -209,15 +214,63 @@ export class FileReaderService {
         return report;
     }
 
-    async importPartFileToDb(filename: string) {
-        const partReader = CategoryFileReader.fromCsv(filename);
+    async importPartFileToDb(filename: string): Promise<string> {
+        const partReader = PartFileReader.fromCsv(filename);
         if ( partReader.load() === true ) {
-            // const summary = FileSummary.winsAnalysisWithReport('Man United');
-            // summary.buildAndPrintReport(exchangeReader.fileData);
-            // const output = await this.processPartFileData(partReader.fileData);
+            return await this.processPartFileData(partReader.fileData);
         } else {
-            Logger.log('Failed to import this file to database. Please check with admin');
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
         }
+    }
+
+    async processPartFileData(parts: FilePartData[]): Promise<string>  {
+        let recordSuccess = 0;
+        let mktId = '';
+        const processedParts = parts.map(async (item) => {
+            let imageArray = [];
+            if (item[2].length) {
+                imageArray = item[2].split('|');
+            }
+            let exchangesArray = [];
+            if (item[7].length) {
+                exchangesArray = item[7].split('|');
+            }
+            const createdYear = parseInt(item[4], 10);
+            const part: CreatePartDto = {
+                name: item[0],
+                info: item[1],
+                images: imageArray,
+                exchanges: exchangesArray,
+                manufacturer: item[3],
+                year: createdYear,
+                era: item[5],
+            };
+            try {
+                await this.marketService.marketIdByName(item[6])
+                .then((res) => {
+                    mktId = res;
+                });
+            } catch (error) {
+                this.logger.error(`Failed to find a Market: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+            try {
+                await this.partService.createPart(part, mktId, this.userId);
+                recordSuccess++;
+            } catch (error) {
+                this.logger.error(`Failed to create an Part: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+        });
+        const result = await Promise.all(processedParts)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${parts.length}`;
+        Logger.log(report);
+        return report;
     }
 
     // async processExchangeFileData(exchanges: FileExchangeData[]): Promise<string> {

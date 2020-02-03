@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ManufacturerRepository } from './manufacturer.repository';
 import { CreateManufacturerDto } from './dto/create-manufacturer-dto';
 import { Manufacturer } from './manufacturer.entity';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Injectable()
 export class ManufacturerService {
@@ -11,8 +12,8 @@ export class ManufacturerService {
         private manufacturerCreatedRepository: ManufacturerRepository,
     ) {}
 
-    async allManufacturers(page: number = 1): Promise<Manufacturer[]> {
-        return this.manufacturerCreatedRepository.allManufacturers(page);
+    async allManufacturers(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Manufacturer[]> {
+        return this.manufacturerCreatedRepository.allManufacturers(filterDto, page);
     }
 
     async deleteManufacturer(id: string): Promise<void> {

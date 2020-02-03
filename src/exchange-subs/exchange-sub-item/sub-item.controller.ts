@@ -31,6 +31,14 @@ export class SubItemController {
         return this.subItemService.getSubItemByIdIncrementView(id, ipAddress);
     }
 
+    @Get('/view/:id')
+    getExchangeByIdView(
+        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress ): Promise<SubItem> {
+        // tslint:disable-next-line: max-line-length
+        // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
+        return this.subItemService.getSubItemByIdIncrementView(id, ipAddress);
+    }
+
     @Get('/exchange/:id')
     getSubItemsByExchange(
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
@@ -40,6 +48,7 @@ export class SubItemController {
 
     @Post('/:exchangeid')
     @UsePipes(ValidationPipe)
+    @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('images'))
     createSubItem(
         @Param('exchangeid', new ParseUUIDPipe()) exchangeId: string,
@@ -51,12 +60,14 @@ export class SubItemController {
     }
 
     @Delete('/:id')
+    @UseGuards(AuthGuard())
     deleteSubItem(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
         return this.subItemService.deleteSubItem(id);
     }
 
     @Patch('/status/:id')
+    @UseGuards(AuthGuard())
     updatesubItemStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
@@ -66,13 +77,15 @@ export class SubItemController {
     }
 
     @Post('/images/:id')
-    @UseInterceptors(FileInterceptor('image'))
-    uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.subItemService.uploadSubItemImage(id, image);
+    @UseGuards(AuthGuard())
+    @UseInterceptors(FilesInterceptor('image'))
+    uploadImages(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+        return this.subItemService.uploadSubItemImages(id, images);
     }
 
     @Delete('/images/:id')
-    deleteCategoryImages(
+    @UseGuards(AuthGuard())
+    deleteSubItemImages(
         @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
         return this.subItemService.deleteSubItemImages(id);
     }
@@ -89,15 +102,11 @@ export class SubItemController {
       return this.subItemService.unWatchSubItem(id, user.id);
     }
 
-    // @Post('/upvote/:id')
-    // @UseGuards(AuthGuard())
-    // upvote(@Param('id') id: string, @GetUser() user: UserEntity) {
-    //   return this.subItemService.upvote(id, user.id);
-    // }
-
-    // @Post('/downvote/:id')
-    // @UseGuards(AuthGuard())
-    // downvote(@Param('id') id: string, @GetUser() user: UserEntity) {
-    //   return this.subItemService.downvote(id, user.id);
-    // }
+    @Patch('/vote/:id')
+    @UseGuards(AuthGuard())
+    updateVote(
+        @Param('id', new ParseUUIDPipe()) id: string, @GetUser() user: UserEntity,
+        ): Promise<SubItem> {
+            return this.subItemService.updateVote(user.id, id);
+    }
 }

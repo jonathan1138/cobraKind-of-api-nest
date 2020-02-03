@@ -125,7 +125,10 @@ export class MarketRepository extends Repository<Market> {
     private buildQuery(filterDto: StatusAndSearchFilterDto, page: number) {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('market')
-        .leftJoinAndSelect('market.tags', 'tag');
+        .leftJoinAndSelect('market.tags', 'tag')
+        .leftJoinAndSelect('market.genres', 'genre')
+        .select(['market', 'tag.id', 'tag.name', 'genre.id',
+        'genre.name']);
         if (status) {
             query.andWhere('market.status = :status', { status });
         }

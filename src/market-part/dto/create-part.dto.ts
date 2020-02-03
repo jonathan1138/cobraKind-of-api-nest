@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
+import { Exchange } from 'src/market-exchange/exchange.entity';
 
 export class CreatePartDto {
     @IsNotEmpty()
@@ -22,4 +23,7 @@ export class CreatePartDto {
     @IsOptional()
     @IsString()
     manufacturer: string;
+
+    @IsOptional()
+    exchanges: Exchange[];
 }

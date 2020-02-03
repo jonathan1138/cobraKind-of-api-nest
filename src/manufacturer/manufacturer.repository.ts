@@ -2,27 +2,25 @@ import { Repository, EntityRepository } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
 import { Logger, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { CreateManufacturerDto } from './dto/create-manufacturer-dto';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @EntityRepository(Manufacturer)
 export class ManufacturerRepository extends Repository<Manufacturer> {
     private logger = new Logger('ManufacturerRepository');
 
-    async allManufacturers(page: number = 1): Promise<Manufacturer[]> {
-        if (page > 0) {
-            return await this.find({
-                order: {
-                    name: 'ASC',
-                },
-                take: 50,
-                skip: 50 * (page - 1),
-            });
-        } else {
-            return await this.find({
-                order: {
-                    name: 'ASC',
-                },
-            });
+    async allManufacturers(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Manufacturer[]> {
+        const { search } = filterDto;
+        const query = this.createQueryBuilder('manufacturer')
+        .leftJoinAndSelect('manufacturer.exchanges', 'exchange')
+        .select(['manufacturer', 'exchange.id', 'exchange.name']);
+        if (search) {
+            query.andWhere('(LOWER(manufacturer.name) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        return await query.orderBy('manufacturer.name', 'ASC').getMany();
     }
 
     async getManufacturerById(id: string): Promise<Manufacturer> {

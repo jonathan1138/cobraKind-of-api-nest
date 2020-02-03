@@ -1,5 +1,5 @@
 import { EntityRepository, Repository } from 'typeorm';
-import { Logger, NotFoundException, InternalServerErrorException, ConflictException  } from '@nestjs/common';
+import { Logger, NotFoundException, InternalServerErrorException, ConflictException, NotAcceptableException  } from '@nestjs/common';
 import { Exchange } from './exchange.entity';
 import { StatusAndSearchFilterDto } from '../shared/filters/status-search.filter.dto';
 import { CreateExchangeDto } from './dto/create-exchange-dto';
@@ -18,18 +18,8 @@ export class ExchangeRepository extends Repository<Exchange> {
 
     async getExchanges(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<Exchange[]> {
         const query = this.buildQuery(filterDto, page);
-        // query.leftJoinAndMapOne('exchange.market', Market, 'market', 'market.id = exchange.marketId');
         try {
             return await query.getMany();
-            // // sucks but whatever
-            // exchanges.map(item => (
-            //     Object.entries(item.market).forEach(([key]) => {
-            //         if (key !== 'name') {
-            //             delete item.market[key];
-            //         }
-            //     })
-            // ));
-            // return exchanges;
         } catch (error) {
             this.logger.error(`Failed to get exchanges for user`, error.stack);
             throw new InternalServerErrorException('Failed to get exchanges for user');
@@ -98,16 +88,23 @@ export class ExchangeRepository extends Repository<Exchange> {
         return found;
     }
 
+    async exchangeByName(name: string): Promise<Exchange> {
+        const query = this.createQueryBuilder('exchange');
+        query.andWhere('exchange.name = :name', { name });
+        try {
+            const found = await query.getOne();
+            return found;
+        } catch (error) {
+           // this.logger.error(`Invalid Tag Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Name Supplied');
+        }
+    }
+
     async getExchangeByIdForViews(id: string): Promise<Exchange> {
         const found = await this.findOne(id, {relations: ['userIpViews']});
         if (!found) {
             throw new NotFoundException('Exchange Not found');
         }
-        // Object.entries(found.market).forEach(([key]) => {
-        //     if (key !== 'name') {
-        //         delete found.market[key];
-        //     }
-        // });
         return found;
     }
 
@@ -179,8 +176,7 @@ export class ExchangeRepository extends Repository<Exchange> {
             query.take(15);
             query.skip(15 * (page - 1));
         }
-        query.orderBy('exchange.name', 'ASC');
-        return query;
+        return query.orderBy('exchange.name', 'ASC');
     }
 
     async createExchange(createExchangeDto: CreateExchangeDto, market: Market, newYear: CreatedYear, newManufacturer: Manufacturer,

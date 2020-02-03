@@ -13,10 +13,13 @@ import { TagRepository } from 'src/market-tag/tag.repository';
 import { SubItemRepository } from 'src/exchange-subs/exchange-sub-item/sub-item.repository';
 import { ManufacturerRepository } from '../manufacturer/manufacturer.repository';
 import { CreatedYearRepository } from '../created-year/year.repository';
+import { UserRepository } from 'src/user/user.repository';
+import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PartRepository, CategoryRepository, MarketRepository,
-    GenreRepository, ExchangeRepository, TagRepository, SubItemRepository, CreatedYearRepository, ManufacturerRepository]), AuthModule],
+    GenreRepository, UserRepository, ExchangeRepository, TagRepository, SubItemRepository,
+    CreatedYearRepository, ManufacturerRepository, UserIp]), AuthModule],
   controllers: [PartController],
   providers: [PartService, S3UploadService],
 })

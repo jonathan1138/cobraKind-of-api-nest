@@ -121,6 +121,15 @@ export class MarketController {
             return this.marketService.updateMarketTags(id, tags);
     }
 
+    @Patch('/genre/:id')
+    @UseGuards(AuthGuard())
+    updateMarketGenres(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body('genres') genres: string[],
+        ): Promise<Market> {
+            return this.marketService.updateMarketGenres(id, genres);
+    }
+
     @Patch('/update/:id')
     @UseGuards(AuthGuard())
     updatemarket(

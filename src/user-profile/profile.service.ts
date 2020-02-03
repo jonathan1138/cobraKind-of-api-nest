@@ -9,6 +9,8 @@ import { Market } from '../market/market.entity';
 import { MarketRepository } from 'src/market/market.repository';
 import { Exchange } from 'src/market-exchange/exchange.entity';
 import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
+import { Part } from '../market-part/part.entity';
+import { PartRepository } from 'src/market-part/part.repository';
 
 @Injectable()
 export class ProfileService {
@@ -18,6 +20,7 @@ export class ProfileService {
         @InjectRepository(TagRepository) private tagRepository: TagRepository,
         @InjectRepository(MarketRepository) private marketRepository: MarketRepository,
         @InjectRepository(ExchangeRepository) private exchangeRepository: ExchangeRepository,
+        @InjectRepository(PartRepository) private partRepository: PartRepository,
     ) {}
 
     async getProfiles(): Promise<Profile[]> {
@@ -156,5 +159,35 @@ export class ProfileService {
             await Promise.all(uploadPromises);
         }
         return newExchanges;
+    }
+
+    async updateWatchedParts(id: string, parts: string[] ): Promise<void> {
+        const user = await this.userRepository.getUserById(id);
+        const profile = await this.profileRepository.findOne(user.profile.id);
+        profile.watchedParts = await this.processParts(parts);
+        this.profileRepository.save(profile);
+    }
+
+    private async processParts(parts: string[]): Promise<Part[]> {
+        const newParts: Part[] = [];
+        let assureArray = [];
+        if (parts) {
+            if ( !Array.isArray(parts) ) {
+                assureArray.push(parts);
+            } else {
+                assureArray = [...parts];
+            }
+        }
+        if (assureArray.length) {
+            const uploadPromises = assureArray.map(async (part, index: number) => {
+                // formerly find one by name; changed on 11/24
+                const foundPart = await this.partRepository.findOne({id: part});
+                if (foundPart) {
+                    newParts.push(foundPart);
+                }
+            });
+            await Promise.all(uploadPromises);
+        }
+        return newParts;
     }
 }

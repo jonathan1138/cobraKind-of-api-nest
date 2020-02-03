@@ -75,8 +75,11 @@ export class UserRepository extends Repository<UserEntity> {
         .leftJoinAndSelect('profile.watchedTags', 'tag')
         .leftJoinAndSelect('profile.watchedMarkets', 'market')
         .leftJoinAndSelect('profile.watchedExchanges', 'exchange')
+        .leftJoinAndSelect('profile.watchedParts', 'part')
         .leftJoinAndSelect('user_entity.listingRatings', 'listingRating')
-        .leftJoinAndSelect('user_entity.posts', 'posts');
+        .leftJoinAndSelect('user_entity.posts', 'posts')
+        .select(['user_entity', 'profile', 'tag.id', 'tag.name', 'market.id',
+        'market.name', 'exchange.id', 'exchange.name', 'part.id', 'part.name', 'listingRating', 'posts']);
         if (page > 0) {
             query.take(15)
             .skip(15 * (page - 1));
@@ -94,13 +97,13 @@ export class UserRepository extends Repository<UserEntity> {
     async getUserByName( name: string ): Promise<UserEntity> {
         const found = await this.findOne({name}, { relations: [
             'listingRatings', 'profile', 'profile.watchedTags',
-            'profile.watchedMarkets', 'profile.watchedExchanges'] });
+            'profile.watchedMarkets', 'profile.watchedExchanges', 'profile.watchedPosts'] });
         return found;
     }
 
     async getUserById(id: string): Promise<UserEntity> {
         const found = await this.findOne(id, { relations: ['listingRatings',
-            'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges'] });
+            'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges', 'profile.watchedPosts'] });
         if (!found) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
@@ -109,7 +112,7 @@ export class UserRepository extends Repository<UserEntity> {
 
     async getUserByIdWCreations(id: string): Promise<UserEntity> {
         const found = await this.findOne(id, { relations: ['listingRatings',
-            'profile', 'profile.createdTags', 'profile.createdMarkets', 'profile.createdExchanges'] });
+            'profile', 'profile.createdTags', 'profile.createdMarkets', 'profile.createdExchanges',  'profile.watchedPosts'] });
         if (!found) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }

@@ -9,10 +9,11 @@ import { UserRepository } from 'src/user/user.repository';
 import { UserIp } from '../../user-ip-for-views/user-ip.entity';
 import { CreatedYearRepository } from '../../created-year/year.repository';
 import { ManufacturerRepository } from '../../manufacturer/manufacturer.repository';
+import { AuthModule } from 'src/user-auth/auth.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ExchangeRepository, SubItemRepository, UserRepository, UserIp,
-    CreatedYearRepository, ManufacturerRepository]) ],
+    CreatedYearRepository, ManufacturerRepository]), AuthModule],
   controllers: [SubItemController],
   providers: [SubItemService, S3UploadService],
 })

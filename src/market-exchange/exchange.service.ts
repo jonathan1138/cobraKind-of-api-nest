@@ -23,7 +23,6 @@ import { CreatedYearRepository } from 'src/created-year/year.repository';
 import { Manufacturer } from '../manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/created-year/year.entity';
 import { UserLike } from 'src/user/entities/user-like.entity';
-import { Market } from 'src/market/market.entity';
 
 @Injectable()
 export class ExchangeService {
@@ -54,6 +53,10 @@ export class ExchangeService {
 
     async getExchangeById(id: string): Promise<Exchange> {
         return await this.exchangeRepository.getExchangeById(id);
+    }
+
+    async exchangeByName(name: string): Promise<Exchange> {
+        return await this.exchangeRepository.exchangeByName(name);
     }
 
     async getExchangeByIdIncrementView(id: string, ipAddress: string): Promise<Exchange> {

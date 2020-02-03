@@ -1,15 +1,18 @@
-import { Controller, Delete, Get, Query, UseGuards, Patch, Post, ParseUUIDPipe, Body, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Query, UseGuards, Patch, Post, ParseUUIDPipe, Body, Param, ValidationPipe } from '@nestjs/common';
 import { Manufacturer } from './manufacturer.entity';
 import { ManufacturerService } from './manufacturer.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateManufacturerDto } from './dto/create-manufacturer-dto';
+import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 
 @Controller('manufacturer')
 export class ManufacturerController {
     constructor( private createdYearService: ManufacturerService ) {}
     @Get()
-    manufacturers(@Query('page') page: number): Promise<Manufacturer[]> {
-        return this.createdYearService.allManufacturers(page);
+    manufacturers(
+    @Query('page') page: number,
+    @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto): Promise<Manufacturer[]> {
+        return this.createdYearService.allManufacturers(filterDto, page);
     }
     @Delete('/:id')
     @UseGuards(AuthGuard())

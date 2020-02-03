@@ -12,6 +12,7 @@ import { ListingRating } from '../exchange-listing-rating/listing-rating.entity'
 import { PriceRatingInfo } from '../exchange-price-rating-info/price-rating-info.entity';
 import { Manufacturer } from '../manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/created-year/year.entity';
+import { Part } from 'src/market-part/part.entity';
 
 @Entity()
 @Unique(['name'])
@@ -90,4 +91,10 @@ export class Exchange extends BaseEntity {
 
     @ManyToOne(() => CreatedYear, createdYear => createdYear.exchanges, { eager: true, cascade: true } )
     createdYear: CreatedYear;
+
+    @ManyToMany(() => Part, (part: Part) => part.exchanges, {
+      cascade: true,
+      nullable: true,
+    })
+    public parts: Part[];
 }
