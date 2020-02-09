@@ -6,35 +6,35 @@ import { PriceRatingInfo } from './price-rating-info.entity';
 export class PriceRatingInfoRepository extends Repository<PriceRatingInfo> {
     private logger = new Logger('PriceRatingInfoRepository');
 
-    async incrementNumBids(id: string): Promise<void> {
+    async incrementTotalBids(id: string): Promise<void> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numBids: () => 'numBids + 1' })
+        .set({ totalBids: () => 'totalBids + 1' })
         .execute();
     }
 
-    async decrementNumBids(id: string): Promise<void> {
+    async decrementTotalBids(id: string): Promise<void> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numBids: () => 'numBids - 1' })
+        .set({ totalBids: () => 'totalBids - 1' })
         .execute();
     }
 
-    async incrementNumOffers(id: string): Promise<void> {
+    async incrementTotalOffers(id: string): Promise<void> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numOffers: () => 'numOffers + 1' })
+        .set({ totalOffers: () => 'totalOffers + 1' })
         .execute();
     }
 
-    async decrementNumOffers(id: string): Promise<void> {
+    async decrementTotalOffers(id: string): Promise<void> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numOffers: () => 'numOffers - 1' })
+        .set({ totalOffers: () => 'totalOffers - 1' })
         .execute();
     }
 
@@ -58,7 +58,7 @@ export class PriceRatingInfoRepository extends Repository<PriceRatingInfo> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numUpRatings: () => 'numUpRatings + 1' })
+        .set({ totalUpRatings: () => 'totalUpRatings + 1' })
         .execute();
     }
 
@@ -66,7 +66,7 @@ export class PriceRatingInfoRepository extends Repository<PriceRatingInfo> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numUpRatings: () => 'numUpRatings - 1' })
+        .set({ totalUpRatings: () => 'totalUpRatings - 1' })
         .execute();
     }
 
@@ -74,7 +74,7 @@ export class PriceRatingInfoRepository extends Repository<PriceRatingInfo> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numDownRatings: () => 'numDownRatings + 1' })
+        .set({ totalDownRatings: () => 'totalDownRatings + 1' })
         .execute();
     }
 
@@ -82,7 +82,7 @@ export class PriceRatingInfoRepository extends Repository<PriceRatingInfo> {
         await this.createQueryBuilder()
         .update(PriceRatingInfo)
         .where({id})
-        .set({ numDownRatings: () => 'numDownRatings - 1' })
+        .set({ totalDownRatings: () => 'totalDownRatings - 1' })
         .execute();
     }
 

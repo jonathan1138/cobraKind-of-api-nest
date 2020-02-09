@@ -48,6 +48,9 @@ export const multerOptions = {
                 case 'parts':
                     uploadPath = multerConfig.dest + '/' + paramPath;
                     break;
+                case 'subItems':
+                    uploadPath = multerConfig.dest + '/' + paramPath;
+                    break;
                 default:
                     uploadPath = multerConfig.dest + '/' + 'orphans';
             }

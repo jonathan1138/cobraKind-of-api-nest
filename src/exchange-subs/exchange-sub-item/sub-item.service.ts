@@ -36,8 +36,8 @@ export class SubItemService {
         private readonly s3UploadService: S3UploadService,
     ) {}
 
-    getSubItems(filterDto: StatusAndSearchFilterDto): Promise<SubItem[]> {
-        return this.subItemRepository.getSubItems(filterDto);
+    getSubItems(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<SubItem[]> {
+        return this.subItemRepository.getSubItems(filterDto, page);
     }
 
     async getSubItemById(id: string): Promise<SubItem> {
@@ -67,8 +67,19 @@ export class SubItemService {
        return await this.subItemRepository.getSubItemsByExchange(filterDto, exchangeId);
     }
 
-    async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string, images?: object[], filenameInPath?: boolean): Promise<SubItem> {
+    async createSubItem(createSubItemDto: CreateSubItemDto, exchangeId: string,
+                        userId: string, images?: object[], filenameInPath?: boolean): Promise<SubItem> {
         const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
+        const foundSubExchange = await this.subItemRepository.findOne({
+            where: [
+              { name: createSubItemDto.name },
+            ],
+          });
+        if (foundSubExchange) {
+            if (foundSubExchange.exchangeId === exchange.id) {
+                throw new ConflictException('SubItem exists in this Exchange already!');
+            }
+        }
         let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const foundYear = await this.yearRepository.checkYearByName(createSubItemDto.year);
@@ -92,7 +103,7 @@ export class SubItemService {
             }
             return this.subItemRepository.createSubItem(createSubItemDto, exchange, newYear, newManufacturer);
         } else {
-            throw new ConflictException('Exchange Not Found');
+            throw new ConflictException('xChange Not Found');
         }
     }
 
@@ -106,15 +117,8 @@ export class SubItemService {
     async updateSubItemStatus(id: string, status: ListingStatus, statusNote: string ): Promise<SubItem> {
         const subItem = await this.subItemRepository.getSubItemById(id);
         subItem.status = status;
-        subItem.status = status;
         if (!statusNote) {
             switch (subItem.status) {
-                // case ListingStatus.TO_REVIEW:
-                //   subItem.statusNote = ListingStatusNote.TO_REVIEW;
-                //   break;
-                // case ListingStatus.APPROVED:
-                //   subItem.statusNote = ListingStatusNote.APPROVED;
-                //   break;
                 case ListingStatus.REJECTED:
                   subItem.statusNote = ListingStatusNote.REJECTED;
                   break;
@@ -126,6 +130,35 @@ export class SubItemService {
         }
         await subItem.save();
         return subItem;
+    }
+
+    async updateSubItem(id: string, createSubItemDto: CreateSubItemDto): Promise<void> {
+        if ( createSubItemDto.name || createSubItemDto.info || createSubItemDto.manufacturer || createSubItemDto.year || createSubItemDto.era ) {
+            let newYear = new CreatedYear();
+            let newManufacturer = new Manufacturer();
+            if (createSubItemDto.year || createSubItemDto.era) {
+                const foundYear = await this.yearRepository.checkYearByName(createSubItemDto.year);
+                if (foundYear) {
+                    newYear = foundYear;
+                    newYear.era = createSubItemDto.era;
+                } else {
+                    const {year, era } = createSubItemDto;
+                    newYear.year = year;
+                    newYear.era = era;
+                }
+            }
+            if (createSubItemDto.manufacturer) {
+                const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createSubItemDto.manufacturer);
+                if (foundManufacturer) {
+                    newManufacturer = foundManufacturer;
+                } else {
+                    newManufacturer.name = createSubItemDto.manufacturer;
+                }
+            }
+            return this.subItemRepository.updateSubItem(id, createSubItemDto, newYear, newManufacturer);
+        } else {
+          throw new NotAcceptableException(`Update details not provided`);
+        }
     }
 
     async uploadSubItemImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {

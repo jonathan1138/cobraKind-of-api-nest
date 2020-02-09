@@ -13,10 +13,10 @@ export class PriceRatingInfo {
     bestOffer: number;
 
     @Column({default: 0})
-    numBids: number;
+    totalBids: number;
 
     @Column({default: 0})
-    numOffers: number;
+    totalOffers: number;
 
     @Column({default: 0})
     totalPrices: number;
@@ -25,10 +25,10 @@ export class PriceRatingInfo {
     averageRating: number;
 
     @Column({default: 0})
-    numUpRatings: number;
+    totalUpRatings: number;
 
     @Column({default: 0})
-    numDownRatings: number;
+    totalDownRatings: number;
 
     @Column({default: 0})
     totalRatings: number;

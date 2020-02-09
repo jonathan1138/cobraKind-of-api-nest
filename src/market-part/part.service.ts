@@ -56,6 +56,16 @@ export class PartService {
         let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
+        const foundPart = await this.partRepository.findOne({
+            where: [
+              { name: createPartDto.name },
+            ],
+          });
+        if (foundPart) {
+            if (foundPart.marketId === market.id) {
+                throw new ConflictException('Part exists in this Market already!');
+            }
+        }
         const foundYear = await this.yearRepository.checkYearByName(createPartDto.year);
         const foundManufacturer = await this.manufacturerRepository.checkManufacturerByName(createPartDto.manufacturer);
         if (foundYear) {
@@ -70,20 +80,14 @@ export class PartService {
         } else {
             newManufacturer.name = createPartDto.name;
         }
-        const isPartNameUnique = await this.partRepository.isNameUnique(createPartDto.name);
-
-        if ( isPartNameUnique ) {
-            if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.PART_IMG_FOLDER, filenameInPath);
-                createPartDto.images = s3ImageArray;
-            }
-            if (createPartDto.exchanges) {
-                await this.processCreateExchangesArray(createPartDto.exchanges, market.id);
-            }
-            return this.partRepository.createPart(createPartDto, market, newYear, newManufacturer);
-        } else {
-            throw new ConflictException('Part already exists');
+        if ( Array.isArray(images) && images.length > 0) {
+            const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.PART_IMG_FOLDER, filenameInPath);
+            createPartDto.images = s3ImageArray;
         }
+        if (createPartDto.exchanges) {
+            await this.processCreateExchangesArray(createPartDto.exchanges, market.id);
+        }
+        return this.partRepository.createPart(createPartDto, market, newYear, newManufacturer);
     }
 
     async updatePartExchanges(id: string, exchanges: Exchange[] ): Promise<Part> {

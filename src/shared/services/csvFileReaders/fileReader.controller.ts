@@ -92,4 +92,21 @@ export class FileReaderController {
         @Body('filename') filename: string): Promise<string> {
         return await this.fileReaderService.importPartFileToDb(filename);
     }
+
+    @Post('/subItem/:dest')
+    @UseGuards(AuthGuard())
+    @UseInterceptors(FileInterceptor('file', multerOptions ))
+    async uploadSubItem(
+        @Param('destination') destination: string,
+        @UploadedFile() file: string): Promise<string> {
+        const filename = Object.values(file)[1];
+        return await this.importsubItemfiletodb('subItems' + '/' + filename);
+    }
+
+    @Post('/subItem/importfiletodb')
+    @UseGuards(AuthGuard())
+    async importsubItemfiletodb(
+        @Body('filename') filename: string): Promise<string> {
+        return await this.fileReaderService.importSubItemFileToDb(filename);
+    }
 }

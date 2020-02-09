@@ -10,7 +10,6 @@ import { SubVariation } from 'src/exchange-subs/exchange-sub-variation/sub-varia
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 import { Manufacturer } from '../manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/created-year/year.entity';
-import { ManufacturerRepository } from '../manufacturer/manufacturer.repository';
 
 @EntityRepository(Exchange)
 export class ExchangeRepository extends Repository<Exchange> {
@@ -164,8 +163,9 @@ export class ExchangeRepository extends Repository<Exchange> {
         .leftJoinAndSelect('exchange.manufacturer', 'manufacturer')
         .leftJoinAndSelect('exchange.subVariations', 'subVariation')
         .leftJoinAndSelect('exchange.market', 'market')
+        .leftJoinAndSelect('exchange.priceRatingInfo', 'priceRatingInfo')
         .select(['exchange', 'market.id', 'market.name', 'createdYear',
-            'manufacturer', 'genre.id', 'genre.name', 'subVariation']);
+            'manufacturer', 'genre.id', 'genre.name', 'subVariation', 'priceRatingInfo']);
         if (status) {
             query.andWhere('exchange.status = :status', { status });
         }
@@ -201,8 +201,6 @@ export class ExchangeRepository extends Repository<Exchange> {
         }
         try {
             await exchange.save();
-            delete exchange.market;
-            delete exchange.priceRatingInfo;
             return exchange;
         } catch (error) {
             if (error.code === '23505') { // duplicate cat name

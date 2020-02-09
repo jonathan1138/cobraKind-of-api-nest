@@ -19,6 +19,10 @@ import { PartService } from 'src/market-part/part.service';
 import { FilePartData } from './types/filePartData';
 import { CreatePartDto } from 'src/market-part/dto/create-part.dto';
 import { PartFileReader } from './classes/partFileReader';
+import { CreateSubItemDto } from 'src/exchange-subs/exchange-sub-item/dto/create-sub-item-dto';
+import { FileSubItemData } from './types/fileSubItemData';
+import { SubItemFileReader } from './classes/subItemFileReader';
+import { SubItemService } from 'src/exchange-subs/exchange-sub-item/sub-item.service';
 @Injectable()
 export class FileReaderService {
     constructor(
@@ -26,6 +30,7 @@ export class FileReaderService {
         private marketService: MarketService,
         private tagService: TagService,
         private exchangeService: ExchangeService,
+        private subItemService: SubItemService,
         private partService: PartService,
     ) {}
     private logger = new Logger('FileReaderService');
@@ -154,6 +159,65 @@ export class FileReaderService {
         return report;
     }
 
+    async importPartFileToDb(filename: string): Promise<string> {
+        const partReader = PartFileReader.fromCsv(filename);
+        if ( partReader.load() === true ) {
+            return await this.processPartFileData(partReader.fileData);
+        } else {
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
+        }
+    }
+
+    async processPartFileData(parts: FilePartData[]): Promise<string>  {
+        let recordSuccess = 0;
+        let mktId = '';
+        const processedParts = parts.map(async (item) => {
+            let imageArray = [];
+            if (item[2].length) {
+                imageArray = item[2].split('|');
+            }
+            let exchangesArray = [];
+            if (item[7].length) {
+                exchangesArray = item[7].split('|');
+            }
+            const createdYear = parseInt(item[4], 10);
+            const part: CreatePartDto = {
+                name: item[0],
+                info: item[1],
+                images: imageArray,
+                exchanges: exchangesArray,
+                manufacturer: item[3],
+                year: createdYear,
+                era: item[5],
+            };
+            try {
+                await this.marketService.marketIdByName(item[6])
+                .then((res) => {
+                    mktId = res;
+                });
+            } catch (error) {
+                this.logger.error(`Failed to find a Market: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+            try {
+                await this.partService.createPart(part, mktId, this.userId);
+                recordSuccess++;
+            } catch (error) {
+                this.logger.error(`Failed to create an Part: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+        });
+        const result = await Promise.all(processedParts)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${parts.length}`;
+        Logger.log(report);
+        return report;
+    }
+
     async importExchangeFileToDb(filename: string): Promise<string> {
         const exchangeReader = ExchangeFileReader.fromCsv(filename);
         if ( exchangeReader.load() === true ) {
@@ -214,10 +278,10 @@ export class FileReaderService {
         return report;
     }
 
-    async importPartFileToDb(filename: string): Promise<string> {
-        const partReader = PartFileReader.fromCsv(filename);
-        if ( partReader.load() === true ) {
-            return await this.processPartFileData(partReader.fileData);
+    async importSubItemFileToDb(filename: string): Promise<string> {
+        const subItemReader = SubItemFileReader.fromCsv(filename);
+        if ( subItemReader.load() === true ) {
+            return await this.processSubItemFileData(subItemReader.fileData);
         } else {
             const importError = 'Failed to import this file to database. Please check with admin';
             Logger.log(importError);
@@ -225,50 +289,46 @@ export class FileReaderService {
         }
     }
 
-    async processPartFileData(parts: FilePartData[]): Promise<string>  {
+    async processSubItemFileData(subItems: FileSubItemData[]): Promise<string>  {
         let recordSuccess = 0;
-        let mktId = '';
-        const processedParts = parts.map(async (item) => {
+        let exchId = '';
+        const processedSubItems = subItems.map(async (item) => {
             let imageArray = [];
             if (item[2].length) {
                 imageArray = item[2].split('|');
             }
-            let exchangesArray = [];
-            if (item[7].length) {
-                exchangesArray = item[7].split('|');
-            }
             const createdYear = parseInt(item[4], 10);
-            const part: CreatePartDto = {
+            const subItem: CreateSubItemDto = {
                 name: item[0],
                 info: item[1],
                 images: imageArray,
-                exchanges: exchangesArray,
                 manufacturer: item[3],
                 year: createdYear,
                 era: item[5],
             };
             try {
-                await this.marketService.marketIdByName(item[6])
+                const shaveNewLine = item[6].replace(/(\r\n|\n|\r)/gm, '');
+                await this.exchangeService.exchangeByName(shaveNewLine)
                 .then((res) => {
-                    mktId = res;
+                    exchId = res.id;
                 });
             } catch (error) {
-                this.logger.error(`Failed to find a Market: `, error.stack);
+                // this.logger.error(`Failed to find a Exchange: `, error.stack);
                 // throw new InternalServerErrorException();
             }
             try {
-                await this.partService.createPart(part, mktId, this.userId);
+                await this.subItemService.createSubItem(subItem, exchId, this.userId);
                 recordSuccess++;
             } catch (error) {
-                this.logger.error(`Failed to create an Part: `, error.stack);
+                // this.logger.error(`Failed to create an SubItem: `, error.stack);
                 // throw new InternalServerErrorException();
             }
         });
-        const result = await Promise.all(processedParts)
+        const result = await Promise.all(processedSubItems)
         .then(() => {
             return recordSuccess;
         });
-        const report = `Processed ${result} records out of ${parts.length}`;
+        const report = `Processed ${result} records out of ${subItems.length}`;
         Logger.log(report);
         return report;
     }

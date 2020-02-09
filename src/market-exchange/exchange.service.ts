@@ -112,6 +112,16 @@ export class ExchangeService {
         let newYear = new CreatedYear();
         let newManufacturer = new Manufacturer();
         const market = await this.marketRepository.getMarketById(marketId);
+        const foundExchange = await this.exchangeRepository.findOne({
+            where: [
+              { name: createExchangeDto.name },
+            ],
+          });
+        if (foundExchange) {
+            if (foundExchange.marketId === market.id) {
+                throw new ConflictException('Exchange exists in this Market already!');
+            }
+        }
         const foundYear = await this.yearRepository.checkYearByName(createExchangeDto.year);
         if (foundYear) {
             newYear = foundYear;
@@ -126,7 +136,6 @@ export class ExchangeService {
         } else {
             newManufacturer.name = createExchangeDto.manufacturer;
         }
-        const isExchangeNameUnique = await this.exchangeRepository.isNameUnique(createExchangeDto.name);
         const { genres } = createExchangeDto;
         const { subVariations } = createExchangeDto;
         let processedGenres: Genre[] = [];
@@ -137,19 +146,15 @@ export class ExchangeService {
         if (subVariations) {
             processedSubVars = await this.processSubVariations(market.id, subVariations);
         }
-        if ( isExchangeNameUnique ) {
-            if ( Array.isArray(images) && images.length > 0) {
-                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
-                createExchangeDto.images = s3ImageArray;
-            }
-            const created = await this.exchangeRepository.createExchange(
-                createExchangeDto, market, newYear, newManufacturer, processedGenres, processedSubVars,
-            );
-            this.profileService.updateCreatedExchanges(userId, created);
-            return created;
-        } else {
-            throw new ConflictException('Exchange already exists');
+        if ( Array.isArray(images) && images.length > 0) {
+            const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
+            createExchangeDto.images = s3ImageArray;
         }
+        const created = await this.exchangeRepository.createExchange(
+            createExchangeDto, market, newYear, newManufacturer, processedGenres, processedSubVars,
+        );
+        this.profileService.updateCreatedExchanges(userId, created);
+        return created;
     }
 
     async updateExchangeGenres(id: string, genres: Genre[] ): Promise<Exchange> {

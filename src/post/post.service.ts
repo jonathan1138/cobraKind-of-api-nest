@@ -13,10 +13,9 @@ import { ExchangeRepository } from 'src/market-exchange/exchange.repository';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Repository } from 'typeorm';
 import { PriceRatingInfoRepository } from 'src/exchange-price-rating-info/price-rating-info.repository';
-import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
-import { PostType } from 'src/shared/enums/post-type.enum';
 import { MarketRepository } from 'src/market/market.repository';
 import { DeletePostDto } from './dto/delete-post-dto';
+import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
 
 @Injectable()
 export class PostService {
@@ -36,8 +35,8 @@ export class PostService {
         private readonly s3UploadService: S3UploadService,
     ) {}
 
-    getPosts(filterDto: StatusAndSearchFilterDto): Promise<PostEntity[]> {
-        return this.postRepository.getPosts(filterDto);
+    getPosts(filterDto: StatusAndSearchFilterDto, page: number = 1): Promise<PostEntity[]> {
+        return this.postRepository.getPosts(filterDto, page);
     }
 
     async getPostById(id: string): Promise<PostEntity> {
@@ -45,7 +44,7 @@ export class PostService {
     }
 
     async getPostByIdIncrementView(id: string, ipAddress: string): Promise<PostEntity> {
-        const post =  await this.postRepository.getPostByIdWithIp(id);
+        const post =  await this.postRepository.getPostByIdForViews(id);
         if (post) {
             const userIp = new UserIp();
             userIp.ipAddress = ipAddress;
@@ -53,13 +52,13 @@ export class PostService {
             if (foundIp) {
                 userIp.id = foundIp.id;
             }
-            if ( !post.userIpPosts.find(x => x.ipAddress === ipAddress) ) {
-                post.userIpPosts.push(userIp);
+            if ( !post.userIpViews.find(x => x.ipAddress === ipAddress) ) {
+                post.userIpViews.push(userIp);
+                post.views++;
                 await post.save();
-                this.postRepository.incrementView(id);
             }
         }
-        delete post.userIpPosts;
+        delete post.userIpViews;
         return post;
     }
 
@@ -91,21 +90,39 @@ export class PostService {
         }
     }
 
-    async updatePostStatus(id: string, status: ListingStatus ): Promise<PostEntity> {
+    async updatePostStatus(id: string, status: ListingStatus, statusNote: string ): Promise<PostEntity> {
         const post = await this.postRepository.getPostById(id);
         post.status = status;
+        if (!statusNote) {
+            switch (post.status) {
+                case ListingStatus.REJECTED:
+                    post.statusNote = ListingStatusNote.REJECTED;
+                    break;
+                default:
+                    post.statusNote = null;
+                }
+            } else {
+                post.statusNote = statusNote;
+        }
         await post.save();
         return post;
     }
 
-    async uploadPostImage(id: string, image: any, filenameInPath?: boolean): Promise<void> {
+    async updatePost(id: string, createPostDto: CreatePostDto): Promise<void> {
+        if ( createPostDto.title || createPostDto.description || createPostDto.price || createPostDto.type || createPostDto.condition ) {
+            return this.postRepository.updatePost(id, createPostDto);
+        }
+    }
+
+    async uploadPostImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
         if (image) {
             const post = await this.postRepository.getPostById(id);
-            if ( image ) {
-                const s3ImgUrl = await this.s3UploadService.uploadImage(image, ImgFolder.EXCHANGE_IMG_FOLDER, filenameInPath);
-                post.images.push(s3ImgUrl);
-                await post.save();
-            }
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.SUBITEM_IMG_FOLDER, filenameInPath);
+            s3ImgUrlArray.forEach(item => {
+                post.images.push(item);
+            });
+            await post.save();
+            return post.images;
         } else {
             throw new NotAcceptableException(`File not found`);
         }
@@ -120,27 +137,27 @@ export class PostService {
         return arrayImages;
     }
 
-    async watchPost(id: string, userId: string): Promise<void> {
-      const listing = await this.postRepository.findOne({id});
-      const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedExchanges']});
-      const isntWatched = user.profile.watchedPosts.findIndex(post => post.id === id) < 0;
+    async watchPost(id: string, userId: string): Promise<PostEntity> {
+      const post = await this.postRepository.findOne({id});
+      const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedPosts']});
+      const isntWatched = user.profile.watchedPosts.findIndex(item => item.id === id) < 0;
       if (isntWatched) {
-        user.profile.watchedPosts.push(listing);
-        listing.watchCount++;
+        user.profile.watchedPosts.push(post);
+        post.watchCount++;
         await this.userRepository.save(user);
-        await this.exchangeRepository.save(listing);
+        return await this.postRepository.save(post);
    }
   }
 
-  async unWatchPost(id: string, userId: string): Promise<void> {
-      const listing = await this.postRepository.findOne({id});
-      const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedExchanges']});
-      const deleteIndex = user.profile.watchedPosts.findIndex(post => post.id === id);
+  async unWatchPost(id: string, userId: string): Promise<PostEntity> {
+      const post = await this.postRepository.findOne({id});
+      const user = await this.userRepository.findOne(userId, {relations: ['profile', 'profile.watchedPosts']});
+      const deleteIndex = user.profile.watchedPosts.findIndex(item => item.id === id);
       if (deleteIndex >= 0) {
           user.profile.watchedPosts.splice(deleteIndex, 1);
-          listing.watchCount--;
+          post.watchCount--;
           await this.userRepository.save(user);
-          await this.exchangeRepository.save(listing);
+          return await this.postRepository.save(post);
         }
     }
 }

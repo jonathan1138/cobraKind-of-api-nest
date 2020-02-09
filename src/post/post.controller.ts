@@ -23,13 +23,22 @@ export class PostController {
     @Get()
     getPosts(
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
+        @Query('page') page: number,
         ): Promise<PostEntity[]> {
-        return this.postService.getPosts(filterDto);
+        return this.postService.getPosts(filterDto, page);
     }
 
     @Get('/:id')
     getPostById(
         @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress): Promise<PostEntity> {
+        // tslint:disable-next-line: max-line-length
+        // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
+        return this.postService.getPostByIdIncrementView(id, ipAddress);
+    }
+
+    @Get('/view/:id')
+    getPostByIdView(
+        @Param('id', new ParseUUIDPipe()) id: string, @IpAddress() ipAddress ): Promise<PostEntity> {
         // tslint:disable-next-line: max-line-length
         // const ip = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0) + '.' + (Math.floor(Math.random() * 255) + 0);
         return this.postService.getPostByIdIncrementView(id, ipAddress);
@@ -68,26 +77,36 @@ export class PostController {
     updatePostStatus(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body('status', ListingStatusValidationPipe) status: ListingStatus,
+        @Body('statusnote') statusNote?: string,
         ): Promise<PostEntity> {
-            return this.postService.updatePostStatus(id, status);
+            return this.postService.updatePostStatus(id, status, statusNote);
+    }
+
+    @Patch('/update/:id')
+    @UseGuards(AuthGuard())
+    updatePost(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() createPostDto: CreatePostDto,
+        ): Promise<void> {
+            return this.postService.updatePost(id, createPostDto);
     }
 
     @Post('/images/:id')
     @UseGuards(AuthGuard())
-    @UseInterceptors(FileInterceptor('image'))
-    uploadImage(@UploadedFile() image: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-        return this.postService.uploadPostImage(id, image);
+    @UseInterceptors(FilesInterceptor('image'))
+    uploadImages(@UploadedFiles() images: any, @Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+        return this.postService.uploadPostImages(id, images);
     }
 
     @Post('/watch/:id')
     @UseGuards(AuthGuard())
-    watch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    watch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
       return this.postService.watchPost(id, user.id);
     }
 
     @Post('/unwatch/:id')
     @UseGuards(AuthGuard())
-    unwatch(@Param('id') id: string, @GetUser() user: UserEntity) {
+    unwatch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
       return this.postService.unWatchPost(id, user.id);
     }
 

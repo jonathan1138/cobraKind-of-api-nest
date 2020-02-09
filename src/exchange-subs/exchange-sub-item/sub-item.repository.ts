@@ -12,8 +12,8 @@ import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 @EntityRepository(SubItem)
 export class SubItemRepository extends Repository<SubItem> {
     private logger = new Logger('SubItemRepository');
-    async getSubItems(filterDto: StatusAndSearchFilterDto): Promise<SubItem[]> {
-        const query = this.buildQuery(filterDto);
+    async getSubItems(filterDto: StatusAndSearchFilterDto,  page: number = 1): Promise<SubItem[]> {
+        const query = this.buildQuery(filterDto, page);
         try {
             const subItems = await query.getMany();
             return subItems;
@@ -25,15 +25,6 @@ export class SubItemRepository extends Repository<SubItem> {
 
     async getSubItemById(id: string): Promise<SubItem> {
         const found = await this.findOne(id);
-        if (!found) {
-            throw new NotFoundException('SubItem Not found');
-        }
-        this.incrementView(id);
-        return found;
-    }
-
-    async getSubItemByIdWithIp(id: string): Promise<SubItem> {
-        const found = await this.findOne(id, {relations: ['userIpViews']});
         if (!found) {
             throw new NotFoundException('SubItem Not found');
         }
@@ -58,16 +49,26 @@ export class SubItemRepository extends Repository<SubItem> {
         return found;
     }
 
-    private buildQuery(filterDto: StatusAndSearchFilterDto) {
+    private buildQuery(filterDto: StatusAndSearchFilterDto, page?: number) {
         const { status, search } = filterDto;
-        const query = this.createQueryBuilder('subItem');
+        const query = this.createQueryBuilder('subItem')
+        .leftJoinAndSelect('subItem.createdYear', 'createdYear')
+        .leftJoinAndSelect('subItem.manufacturer', 'manufacturer')
+        .leftJoinAndSelect('subItem.exchange', 'exchange')
+        .leftJoinAndSelect('subItem.priceRatingInfo', 'priceRatingInfo')
+        .select(['subItem', 'exchange.id', 'exchange.name', 'createdYear',
+            'manufacturer', 'priceRatingInfo']);
         if (status) {
             query.andWhere('subItem.status = :status', { status });
         }
         if (search) {
             query.andWhere('(LOWER(subItem.name) LIKE :search OR LOWER(subItem.info) LIKE :search)', { search: `%${search.toLowerCase()}%` });
         }
-        return query;
+        if (page > 0) {
+            query.take(15);
+            query.skip(15 * (page - 1));
+        }
+        return query.orderBy('subItem.name', 'ASC');
     }
 
     async createSubItem(
@@ -81,14 +82,11 @@ export class SubItemRepository extends Repository<SubItem> {
         subItem.images = images;
         subItem.exchange = exchange;
         subItem.status = ListingStatus.TO_REVIEW;
-        subItem.subPriceRatingInfo = priceRating;
+        subItem.priceRatingInfo = priceRating;
         subItem.createdYear = newYear;
         subItem.manufacturer = newManufacturer;
-
         try {
             await subItem.save();
-            delete subItem.exchange;
-            delete subItem.subPriceRatingInfo;
             return subItem;
         } catch (error) {
             if (error.code === '23505') { // duplicate cat name
@@ -98,6 +96,21 @@ export class SubItemRepository extends Repository<SubItem> {
                 this.logger.error(`Failed to create a subItem`, error.stack);
                 throw new InternalServerErrorException();
             }
+        }
+    }
+
+    async updateSubItem(id: string, createSubItemDto: CreateSubItemDto, newYear: CreatedYear, newManufacturer: Manufacturer ): Promise<void> {
+        const subItem = await this.getSubItemById(id);
+        const { name, info } = createSubItemDto;
+        subItem.name = name;
+        subItem.info = info;
+        subItem.createdYear = newYear;
+        subItem.manufacturer = newManufacturer;
+        try {
+            await subItem.save();
+         } catch (error) {
+            this.logger.log(error);
+            throw new InternalServerErrorException('Failed to update SubItem. Check with administrator');
         }
     }
 

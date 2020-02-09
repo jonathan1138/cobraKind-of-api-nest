@@ -22,12 +22,15 @@ import { ManufacturerRepository } from '../../../manufacturer/manufacturer.repos
 import { CreatedYearRepository } from '../../../created-year/year.repository';
 import { PartRepository } from '../../../market-part/part.repository';
 import { PartService } from '../../../market-part/part.service';
+import { SubItemRepository } from '../../../exchange-subs/exchange-sub-item/sub-item.repository';
+import { SubItemService } from 'src/exchange-subs/exchange-sub-item/sub-item.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
         UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository,
-        ManufacturerRepository, CreatedYearRepository, PartRepository]), AuthModule],
+        ManufacturerRepository, CreatedYearRepository, PartRepository, SubItemRepository]), AuthModule],
     controllers: [FileReaderController],
-    providers: [FileReaderService, CategoryService, MarketService, S3UploadService, ProfileService, TagService, ExchangeService, PartService],
+    providers: [FileReaderService, CategoryService, MarketService, S3UploadService,
+        SubItemService, ProfileService, TagService, ExchangeService, PartService],
 })
 export class FileReaderModule {}

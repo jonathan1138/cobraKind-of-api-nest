@@ -1,17 +1,18 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity, ManyToMany, JoinTable } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity, ManyToMany, JoinTable, JoinColumn, OneToOne } from 'typeorm';
 import { Market } from 'src/market/market.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/created-year/year.entity';
 import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
+import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 
 @Entity()
 export class Part extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({unique: true})
+    @Column()
     name: string;
 
     @Column('uuid')
@@ -50,6 +51,14 @@ export class Part extends BaseEntity {
     @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
     userIpViews: UserIp[];
+
+    @OneToOne(() => PriceRatingInfo, { // profile => profile.user,
+        // onDelete: 'CASCADE', // this line does jack - nothing, but #3218 with typeorm
+        // eager: true,
+        cascade: ['insert', 'update' ],
+    })
+    @JoinColumn()
+    priceRatingInfo: PriceRatingInfo;
 
     @ManyToOne(() => Manufacturer, manufacturer => manufacturer.parts, { eager: true, cascade: true } )
     manufacturer: Manufacturer;

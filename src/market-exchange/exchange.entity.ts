@@ -15,12 +15,11 @@ import { CreatedYear } from 'src/created-year/year.entity';
 import { Part } from 'src/market-part/part.entity';
 
 @Entity()
-@Unique(['name'])
 export class Exchange extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({unique: true})
+    @Column()
     name: string;
 
     @Column('uuid')

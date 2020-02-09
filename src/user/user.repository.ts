@@ -76,10 +76,11 @@ export class UserRepository extends Repository<UserEntity> {
         .leftJoinAndSelect('profile.watchedMarkets', 'market')
         .leftJoinAndSelect('profile.watchedExchanges', 'exchange')
         .leftJoinAndSelect('profile.watchedParts', 'part')
+        .leftJoinAndSelect('profile.watchedPosts', 'watchedPosts')
         .leftJoinAndSelect('user_entity.listingRatings', 'listingRating')
         .leftJoinAndSelect('user_entity.posts', 'posts')
         .select(['user_entity', 'profile', 'tag.id', 'tag.name', 'market.id',
-        'market.name', 'exchange.id', 'exchange.name', 'part.id', 'part.name', 'listingRating', 'posts']);
+        'market.name', 'exchange.id', 'exchange.name', 'part.id', 'part.name', 'listingRating', 'posts', 'watchedPosts']);
         if (page > 0) {
             query.take(15)
             .skip(15 * (page - 1));
@@ -103,7 +104,8 @@ export class UserRepository extends Repository<UserEntity> {
 
     async getUserById(id: string): Promise<UserEntity> {
         const found = await this.findOne(id, { relations: ['listingRatings',
-            'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedExchanges', 'profile.watchedPosts'] });
+            'profile', 'profile.watchedTags', 'profile.watchedMarkets', 'profile.watchedParts',
+            'profile.watchedExchanges', 'profile.watchedPosts'] });
         if (!found) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }

@@ -7,6 +7,7 @@ import { Market } from 'src/market/market.entity';
 import { CreatePartDto } from './dto/create-part.dto';
 import { CreatedYear } from 'src/created-year/year.entity';
 import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
+import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
 
 @EntityRepository(Part)
 export class PartRepository extends Repository<Part> {
@@ -66,8 +67,9 @@ export class PartRepository extends Repository<Part> {
         .leftJoinAndSelect('part.manufacturer', 'manufacturer')
         .leftJoinAndSelect('part.market', 'market')
         .leftJoinAndSelect('part.exchanges', 'exchange')
+        .leftJoinAndSelect('part.priceRatingInfo', 'priceRatingInfo')
         .select(['part', 'market.id', 'market.name', 'exchange.id', 'exchange.name', 'createdYear',
-            'manufacturer']);
+            'manufacturer', 'priceRatingInfo']);
         if (page > 0) {
             query.take(15);
             query.skip(15 * (page - 1));
@@ -84,6 +86,7 @@ export class PartRepository extends Repository<Part> {
     async createPart(createPartDto: CreatePartDto, market: Market, newYear: CreatedYear, newManufacturer: Manufacturer): Promise<Part> {
         const { name, info, images } = createPartDto;
         const part = new Part();
+        const priceRating = new PriceRatingInfo();
         part.name = name.replace(/,/g, ' ');
         part.info = info;
         part.images = images;
@@ -91,11 +94,12 @@ export class PartRepository extends Repository<Part> {
         part.status = ListingStatus.TO_REVIEW;
         part.createdYear = newYear;
         part.manufacturer = newManufacturer;
-        part.exchanges = createPartDto.exchanges;
+        part.priceRatingInfo = priceRating;
+        if (createPartDto.exchanges) {
+            part.exchanges = createPartDto.exchanges;
+        } else { part.exchanges = []; }
         try {
             await part.save();
-            delete part.market;
-            delete part.exchanges;
             return part;
         } catch (error) {
             if (error.code === '23505') { // duplicate cat name

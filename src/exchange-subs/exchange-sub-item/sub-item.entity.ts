@@ -10,12 +10,11 @@ import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
 import { CreatedYear } from 'src/created-year/year.entity';
 
 @Entity()
-@Unique(['name'])
 export class SubItem extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({unique: true})
+    @Column()
     name: string;
 
     @Column('uuid')
@@ -58,7 +57,7 @@ export class SubItem extends BaseEntity {
         cascade: ['insert', 'update' ],
     })
     @JoinColumn()
-    subPriceRatingInfo: PriceRatingInfo;
+    priceRatingInfo: PriceRatingInfo;
 
     @ManyToOne(() => Manufacturer, manufacturer => manufacturer.subItems, { eager: true } )
     manufacturer: Manufacturer;

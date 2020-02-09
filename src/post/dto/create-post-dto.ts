@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsEnum, IsNumber, IsNumberString } from 'class-validator';
 import { PostType } from '../../shared/enums/post-type.enum';
+import { PostCondition } from '../../shared/enums/post-condition.enum';
 
 export class CreatePostDto {
     @IsNotEmpty()
@@ -12,7 +13,11 @@ export class CreatePostDto {
 
     @IsNotEmpty()
     @IsEnum(PostType)
-    postType: PostType;
+    type: PostType;
+
+    @IsNotEmpty()
+    @IsEnum(PostCondition)
+    condition: PostCondition;
 
     @IsOptional()
     @IsArray()

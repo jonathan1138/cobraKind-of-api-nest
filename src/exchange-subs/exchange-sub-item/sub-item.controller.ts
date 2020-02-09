@@ -19,8 +19,9 @@ export class SubItemController {
     @Get()
     getSubItems(
         @Query(ValidationPipe) filterDto: StatusAndSearchFilterDto,
+        @Query('page') page: number,
         ): Promise<SubItem[]> {
-        return this.subItemService.getSubItems(filterDto);
+        return this.subItemService.getSubItems(filterDto, page);
     }
 
     @Get('/:id')
@@ -53,10 +54,11 @@ export class SubItemController {
     createSubItem(
         @Param('exchangeid', new ParseUUIDPipe()) exchangeId: string,
         @UploadedFiles() images: any,
+        @GetUser() user: UserEntity,
         @Body() createSubItemDto: CreateSubItemDto,
         ): Promise<SubItem> {
         createSubItemDto.images = images;
-        return this.subItemService.createSubItem(createSubItemDto, exchangeId, images);
+        return this.subItemService.createSubItem(createSubItemDto, exchangeId, user.id, images);
     }
 
     @Delete('/:id')
@@ -108,5 +110,14 @@ export class SubItemController {
         @Param('id', new ParseUUIDPipe()) id: string, @GetUser() user: UserEntity,
         ): Promise<SubItem> {
             return this.subItemService.updateVote(user.id, id);
+    }
+
+    @Patch('/update/:id')
+    @UseGuards(AuthGuard())
+    updateSubItem(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() createSubItemDto: CreateSubItemDto,
+        ): Promise<void> {
+            return this.subItemService.updateSubItem(id, createSubItemDto);
     }
 }

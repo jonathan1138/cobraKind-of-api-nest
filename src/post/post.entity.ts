@@ -6,6 +6,7 @@ import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Market } from 'src/market/market.entity';
 import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
+import { PostCondition } from 'src/shared/enums/post-condition.enum';
 
 @Entity()
 export class PostEntity extends BaseEntity {
@@ -24,11 +25,17 @@ export class PostEntity extends BaseEntity {
     @Column('text', {nullable: true})
     description: string;
 
+    @Column({ type: 'enum', enum: PostCondition })
+    condition: PostCondition;
+
     @Column({ type: 'enum', enum: ListingStatus })
     status: ListingStatus;
 
+    @Column({nullable: true})
+    statusNote: string;
+
     @Column({ type: 'enum', enum: PostType })
-    postType: PostType;
+    type: PostType;
 
     @Column({type: 'money', nullable: true})
     price: number;
@@ -71,5 +78,5 @@ export class PostEntity extends BaseEntity {
 
     @ManyToMany(() => UserIp, { cascade: true })
     @JoinTable()
-    userIpPosts: UserIp[];
+    userIpViews: UserIp[];
 }
