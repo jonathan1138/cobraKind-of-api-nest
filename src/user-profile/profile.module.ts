@@ -10,10 +10,11 @@ import { TagRepository } from '../market-tag/tag.repository';
 import { MarketRepository } from 'src/market/market.repository';
 import { ExchangeRepository } from '../market-exchange/exchange.repository';
 import { PartRepository } from '../market-part/part.repository';
+import { SubItemRepository } from '../exchange-subs/exchange-sub-item/sub-item.repository';
 
 @Module({
     imports: [ TypeOrmModule.forFeature([ProfileRepository, UserRepository, TagRepository,
-         MarketRepository, ExchangeRepository, PartRepository]), AuthModule ],
+         MarketRepository, ExchangeRepository, PartRepository, SubItemRepository]), AuthModule ],
     controllers: [ProfileController],
     providers: [ProfileService, S3UploadService],
 })

@@ -292,12 +292,13 @@ export class ExchangeService {
     }
 
     async deleteExchangeImages(id: string): Promise<string[]> {
-        const market = await this.exchangeRepository.getExchangeById(id);
-        let arrayImages: string[] = [];
-        arrayImages = market.images;
-        market.images = [];
-        await market.save();
-        return arrayImages;
+        const exchange = await this.exchangeRepository.findOne(id);
+        if (!exchange) {
+            throw new NotFoundException('Exchange Not found');
+        }
+        exchange.images = [];
+        await exchange.save();
+        return exchange.images;
     }
 
     // getAllExchanges(): Exchange[] {
@@ -344,7 +345,7 @@ export class ExchangeService {
         const deleteIndex = user.profile.watchedExchanges.findIndex(exchange => exchange.id === id);
         if (deleteIndex >= 0) {
             user.profile.watchedExchanges.splice(deleteIndex, 1);
-            exch.watchCount--;
+            if (exch.watchCount > 0) { exch.watchCount--; }
             await this.userRepository.save(user);
             return this.exchangeRepository.save(exch);
         }

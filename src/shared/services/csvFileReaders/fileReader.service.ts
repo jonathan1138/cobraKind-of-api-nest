@@ -1,4 +1,4 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException, Post } from '@nestjs/common';
 import { CategoryFileReader } from './classes/categoryFileReader';
 import { FileCategoryData } from './types/fileCategoryData';
 import { CreateCategoryDto } from '../../../category/dto/create-category-dto';
@@ -23,6 +23,14 @@ import { CreateSubItemDto } from 'src/exchange-subs/exchange-sub-item/dto/create
 import { FileSubItemData } from './types/fileSubItemData';
 import { SubItemFileReader } from './classes/subItemFileReader';
 import { SubItemService } from 'src/exchange-subs/exchange-sub-item/sub-item.service';
+import { PostService } from 'src/post/post.service';
+import { FilePostData } from './types/filePostData';
+import { CreatePostDto } from 'src/post/dto/create-post-dto';
+import { PostFileReader } from './classes/postFileReader';
+import { UserService } from '../../../user/user.service';
+import { PostSide } from 'src/shared/enums/post-side.enum';
+import { PostCondition } from '../../enums/post-condition.enum';
+import { PostListingType } from 'src/shared/enums/post-listing-type.enum';
 @Injectable()
 export class FileReaderService {
     constructor(
@@ -32,6 +40,8 @@ export class FileReaderService {
         private exchangeService: ExchangeService,
         private subItemService: SubItemService,
         private partService: PartService,
+        private postService: PostService,
+        private userService: UserService,
     ) {}
     private logger = new Logger('FileReaderService');
     private userId = 'd86eafeb-f7b1-443b-809b-57454ec9e208';
@@ -329,6 +339,111 @@ export class FileReaderService {
             return recordSuccess;
         });
         const report = `Processed ${result} records out of ${subItems.length}`;
+        Logger.log(report);
+        return report;
+    }
+
+    async importPostFileToDb(filename: string): Promise<string> {
+        const postReader = PostFileReader.fromCsv(filename);
+        if ( postReader.load() === true ) {
+            return await this.processPostFileData(postReader.fileData);
+        } else {
+            const importError = 'Failed to import this file to database. Please check with admin';
+            Logger.log(importError);
+            return importError;
+        }
+    }
+
+    async processPostFileData(posts: FilePostData[]): Promise<string>  {
+        let recordSuccess = 0;
+        let listingTypeId = '';
+        const user = await this.userService.getUserById(this.userId);
+        const processedPosts = posts.map(async (item) => {
+            let imageArray = [];
+            if (item[3].length) {
+                imageArray = item[3].split('|');
+            }
+            const postSide = item[6] === 'Cobra' ? PostSide.COBRA : PostSide.KIND;
+            let postCondition = PostCondition.ACCEPTABLE;
+            switch (item[7]) {
+                case 'ACCEPTABLE':
+                    postCondition = PostCondition.ACCEPTABLE;
+                    break;
+                case 'BRAND_NEW_BOX':
+                    postCondition = PostCondition.BRAND_NEW_BOX;
+                    break;
+                case 'BRAND_NEW_TAGS':
+                    postCondition = PostCondition.BRAND_NEW_TAGS;
+                    break;
+                case 'GOOD':
+                    postCondition = PostCondition.GOOD;
+                    break;
+                case 'LIKE_NEW':
+                    postCondition = PostCondition.LIKE_NEW;
+                    break;
+                case 'NEW':
+                    postCondition = PostCondition.NEW;
+                    break;
+                case 'NOT_WORKING':
+                    postCondition = PostCondition.NOT_WORKING;
+                    break;
+                case 'VERY_GOOD':
+                    postCondition = PostCondition.VERY_GOOD;
+                    break;
+                default:
+                    postCondition = PostCondition.ACCEPTABLE;
+            }
+            const filePrice = parseInt(item[5], 10);
+            const post: CreatePostDto = {
+                title: item[0],
+                description: item[4],
+                images: imageArray,
+                price: filePrice,
+                side: postSide,
+                condition: postCondition,
+                postListingType: PostListingType.EXCHANGE,
+            };
+            try {
+                const shaveNewLine = item[2].replace(/(\r\n|\n|\r)/gm, '');
+                switch (item[1]) {
+                    case 'Exchange':
+                        post.postListingType = PostListingType.EXCHANGE;
+                        await this.exchangeService.exchangeByName(shaveNewLine)
+                        .then((res) => {
+                            listingTypeId = res.id;
+                        });
+                        await this.postService.createPost(post, listingTypeId, user);
+                        recordSuccess++;
+                        break;
+                    case 'Part':
+                        post.postListingType = PostListingType.PART;
+                        await this.partService.partByName(shaveNewLine)
+                        .then((res) => {
+                            listingTypeId = res.id;
+                        });
+                        await this.postService.createPost(post, listingTypeId, user);
+                        recordSuccess++;
+                        break;
+                    case 'SubItem':
+                        post.postListingType = PostListingType.SUBITEM;
+                        await this.subItemService.subItemByName(shaveNewLine)
+                        .then((res) => {
+                            listingTypeId = res.id;
+                        });
+                        await this.postService.createPost(post, listingTypeId, user);
+                        recordSuccess++;
+                        break;
+                }
+            } catch (error) {
+                this.logger.error(`Failed to find an Entity: `, error.stack);
+                // throw new InternalServerErrorException();
+            }
+        });
+        const result = await Promise.all(processedPosts)
+        .then(() => {
+            return recordSuccess;
+        });
+        const report = `Processed ${result} records out of ${posts.length}`;
         Logger.log(report);
         return report;
     }

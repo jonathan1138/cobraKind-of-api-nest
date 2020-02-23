@@ -270,7 +270,7 @@ export class MarketService {
         const deleteIndex = user.profile.watchedMarkets.findIndex(market => market.id === id);
         if (deleteIndex >= 0) {
             user.profile.watchedMarkets.splice(deleteIndex, 1);
-            mkt.watchCount--;
+            if (mkt.watchCount > 0) { mkt.watchCount--; }
             await this.userRepository.save(user);
             return this.marketRepository.save(mkt);
         }

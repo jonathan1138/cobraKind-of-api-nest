@@ -32,6 +32,20 @@ export class UserController {
         return this.usersService.getUserByIdWCreations(id);
     }
 
+    @Get('/watched/:id')
+    @UseInterceptors(ClassSerializerInterceptor)
+    getUserByIdWatched(
+        @Param('id', new ParseUUIDPipe()) id: string): Promise<UserEntity> {
+        return this.usersService.getUserByIdWatched(id);
+    }
+
+    @Get('/posts/:id')
+    @UseInterceptors(ClassSerializerInterceptor)
+    getUserByIdPosts(
+        @Param('id', new ParseUUIDPipe()) id: string): Promise<UserEntity> {
+        return this.usersService.getUserByIdPosts(id);
+    }
+
     @Get('/:id')
     @UseInterceptors(ClassSerializerInterceptor)
     getUserById(

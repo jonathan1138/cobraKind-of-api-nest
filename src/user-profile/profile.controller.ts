@@ -39,6 +39,15 @@ export class ProfileController {
             return this.profileService.updateWatchedMarkets(id, markets);
     }
 
+    @Patch('/parts/:id')
+    @UseGuards(AuthGuard())
+    updateWatchedParts(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body('parts') parts: string[],
+        ): Promise<void> {
+            return this.profileService.updateWatchedParts(id, parts);
+    }
+
     @Patch('/exchanges/:id')
     @UseGuards(AuthGuard())
     updateWatchedExchanges(
@@ -48,13 +57,13 @@ export class ProfileController {
             return this.profileService.updateWatchedExchanges(id, exchanges);
     }
 
-    @Patch('/parts/:id')
+    @Patch('/subItems/:id')
     @UseGuards(AuthGuard())
-    updateWatchedParts(
+    updateWatchedSubItems(
         @Param('id', new ParseUUIDPipe()) id: string,
-        @Body('parts') parts: string[],
+        @Body('subItems') subItems: string[],
         ): Promise<void> {
-            return this.profileService.updateWatchedParts(id, parts);
+            return this.profileService.updateWatchedSubItems(id, subItems);
     }
 
     // @Patch('/tagsCreated/:id')

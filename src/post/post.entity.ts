@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, BaseEntity, BeforeUpdate } from 'typeorm';
-import { PostType } from '../shared/enums/post-type.enum';
+import { PostSide } from '../shared/enums/post-side.enum';
 import { UserEntity } from '../user/entities/user.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Exchange } from 'src/market-exchange/exchange.entity';
@@ -7,14 +7,16 @@ import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { Market } from 'src/market/market.entity';
 import { SubItem } from 'src/exchange-subs/exchange-sub-item/sub-item.entity';
 import { PostCondition } from 'src/shared/enums/post-condition.enum';
+import { Part } from 'src/market-part/part.entity';
+import { PostListingType } from 'src/shared/enums/post-listing-type.enum';
 
 @Entity()
 export class PostEntity extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column('uuid')
-    public exchangeId!: string;
+    @Column({ type: 'enum', enum: PostListingType })
+    public listingType: string;
 
     @Column('uuid')
     public ownerId!: string;
@@ -34,8 +36,8 @@ export class PostEntity extends BaseEntity {
     @Column({nullable: true})
     statusNote: string;
 
-    @Column({ type: 'enum', enum: PostType })
-    type: PostType;
+    @Column({ type: 'enum', enum: PostSide })
+    side: PostSide;
 
     @Column({type: 'money', nullable: true})
     price: number;
@@ -64,14 +66,17 @@ export class PostEntity extends BaseEntity {
       this.updated = new Date;
     }
 
-    @ManyToOne(() => UserEntity, owner => owner.posts)
+    @ManyToOne(() => UserEntity, owner => owner.posts, { cascade: true })
     owner: UserEntity;
+
+    @ManyToOne(() => Market, market => market.posts, { eager: false } )
+    market: Market;
 
     @ManyToOne(() => Exchange, exchange => exchange.posts, { eager: false } )
     exchange: Exchange;
 
-    @ManyToOne(() => Market, market => market.posts, { eager: false } )
-    market: Market;
+    @ManyToOne(() => Part, part => part.posts, { eager: false } )
+    part: Part;
 
     @ManyToOne(() => SubItem, subItem => subItem.posts, { eager: false } )
     subItem: SubItem;

@@ -14,9 +14,10 @@ import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { ProfileService } from '../user-profile/profile.service';
 import { ProfileRepository } from 'src/user-profile/profile.repository';
 import { GenreRepository } from '../exchange-genre/genre.repository';
+import { SubItemRepository } from '../exchange-subs/exchange-sub-item/sub-item.repository';
 @Module({
   imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository, GenreRepository,
-    ExchangeRepository, PartRepository, UserRepository,
+    ExchangeRepository, PartRepository, UserRepository, SubItemRepository,
     ProfileRepository, UserIp]), AuthModule],
   controllers: [MarketController],
   providers: [MarketService, S3UploadService, ProfileService],

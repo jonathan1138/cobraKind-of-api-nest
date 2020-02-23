@@ -48,6 +48,10 @@ export class PartService {
         return await this.partRepository.getPartById(id);
     }
 
+    async partByName(name: string): Promise<Part> {
+        return await this.partRepository.partByName(name);
+    }
+
     async getPartsByMarket(filterDto: StatusAndSearchFilterDto, marketId: string): Promise<Part[]> {
        return await this.partRepository.getPartsByMarket(filterDto, marketId);
     }
@@ -264,7 +268,7 @@ export class PartService {
         const deleteIndex = user.profile.watchedParts.findIndex(prt => prt.id === id);
         if (deleteIndex >= 0) {
             user.profile.watchedParts.splice(deleteIndex, 1);
-            part.watchCount--;
+            if (part.watchCount >= 0) { part.watchCount--; }
             await this.userRepository.save(user);
             return await this.partRepository.save(part);
         }

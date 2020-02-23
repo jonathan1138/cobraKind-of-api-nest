@@ -1,6 +1,6 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { SubItem } from './sub-item.entity';
-import { Logger, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Logger, InternalServerErrorException, NotFoundException, ConflictException, NotAcceptableException } from '@nestjs/common';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { CreateSubItemDto } from './dto/create-sub-item-dto';
 import { Exchange } from 'src/market-exchange/exchange.entity';
@@ -30,6 +30,18 @@ export class SubItemRepository extends Repository<SubItem> {
         }
         this.incrementView(id);
         return found;
+    }
+
+    async subItemByName(name: string): Promise<SubItem> {
+        const query = this.createQueryBuilder('subItem');
+        query.andWhere('subItem.name = :name', { name });
+        try {
+            const found = await query.getOne();
+            return found;
+        } catch (error) {
+           // this.logger.error(`Invalid Tag Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Name Supplied');
+        }
     }
 
     async getSubItemByIdForViews(id: string): Promise<SubItem> {

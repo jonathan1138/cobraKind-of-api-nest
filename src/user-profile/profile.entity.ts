@@ -46,7 +46,7 @@ export class Profile {
   @JoinTable()
   public watchedSubMods: SubMod[];
 
-  @ManyToMany(() => PostEntity, { cascade: true })
+  @ManyToMany(() => PostEntity)
   @JoinTable()
   watchedPosts: PostEntity[];
 

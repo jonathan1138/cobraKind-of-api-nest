@@ -10,7 +10,7 @@
     "start-server": "tsc && node_modules/.bin/env-cmd node build/server.js",
     "start": "nodemon ts-node -r tsconfig-paths/register src/main.ts",
     "update-metadata": "node_modules/.bin/schemats generate -c postgres://cobrakind_admin:pioneer123@localhost:5432/cobrakinddb -o db/model_generated.ts",
-    "start:dev": "NODE_ENV=development nodemon",
+    "start:dev": "NODE_ENV=development nodemon --max-old-space-size=2048",
     "start:debug": "nodemon --config nodemon-debug.json",
     "prestart:prod": "rimraf dist && npm run build",
     "start:prod": "NODE_ENV=production node dist/main.js",

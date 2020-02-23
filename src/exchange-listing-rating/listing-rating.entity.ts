@@ -1,15 +1,15 @@
 import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { Exchange } from '../market-exchange/exchange.entity';
-import { PostType } from '../shared/enums/post-type.enum';
+import { PostSide } from '../shared/enums/post-side.enum';
 
 @Entity()
 export class ListingRating extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'enum', enum: PostType })
-    listingRatingType: PostType;
+    @Column({ type: 'enum', enum: PostSide })
+    listingRatingType: PostSide;
 
     @Column('uuid')
     public exchangeId!: string;

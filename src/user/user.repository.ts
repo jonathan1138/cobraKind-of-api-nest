@@ -72,15 +72,8 @@ export class UserRepository extends Repository<UserEntity> {
             query.where('(user_entity.name LIKE :search)', { search: `%${search}%` });
         }
         query.leftJoinAndSelect('user_entity.profile', 'profile')
-        .leftJoinAndSelect('profile.watchedTags', 'tag')
-        .leftJoinAndSelect('profile.watchedMarkets', 'market')
-        .leftJoinAndSelect('profile.watchedExchanges', 'exchange')
-        .leftJoinAndSelect('profile.watchedParts', 'part')
-        .leftJoinAndSelect('profile.watchedPosts', 'watchedPosts')
         .leftJoinAndSelect('user_entity.listingRatings', 'listingRating')
-        .leftJoinAndSelect('user_entity.posts', 'posts')
-        .select(['user_entity', 'profile', 'tag.id', 'tag.name', 'market.id',
-        'market.name', 'exchange.id', 'exchange.name', 'part.id', 'part.name', 'listingRating', 'posts', 'watchedPosts']);
+        .select(['user_entity', 'profile', 'listingRating']);
         if (page > 0) {
             query.take(15)
             .skip(15 * (page - 1));
@@ -95,10 +88,43 @@ export class UserRepository extends Repository<UserEntity> {
         }
     }
 
+    async getUserByIdWatched(id: string): Promise<UserEntity> {
+        const query = this.createQueryBuilder('user_entity')
+        .where('user_entity.id = :id', { id })
+        .leftJoinAndSelect('user_entity.profile', 'profile')
+        .leftJoinAndSelect('profile.watchedTags', 'tag')
+        .leftJoinAndSelect('profile.watchedMarkets', 'market')
+        .leftJoinAndSelect('profile.watchedExchanges', 'exchange')
+        .leftJoinAndSelect('profile.watchedParts', 'part')
+        .leftJoinAndSelect('profile.watchedPosts', 'post')
+        .leftJoinAndSelect('profile.watchedSubItems', 'subItem')
+        .select(['user_entity', 'profile', 'tag.name', 'tag.id', 'market.name', 'market.id', 'exchange.name', 'exchange.id',
+        'subItem.name', 'subItem.id', 'post.title', 'post.id', 'post.listingType', 'post.side', 'part.name', 'part.id']);
+        try {
+            const user = await query.getOne();
+            return user;
+        } catch (error) {
+            this.logger.error(`Failed to get user`, error.stack);
+            throw new InternalServerErrorException('Failed to get user');
+        }
+    }
+
+    async getUserByIdPosts(id: string): Promise<UserEntity> {
+        const query = this.createQueryBuilder('user_entity')
+        .where('user_entity.id = :id', { id })
+        .leftJoinAndSelect('user_entity.posts', 'posts')
+        .orderBy('posts.title', 'ASC');
+        try {
+            const user = await query.getOne();
+            return user;
+        } catch (error) {
+            this.logger.error(`Failed to get user`, error.stack);
+            throw new InternalServerErrorException('Failed to get user');
+        }
+    }
+
     async getUserByName( name: string ): Promise<UserEntity> {
-        const found = await this.findOne({name}, { relations: [
-            'listingRatings', 'profile', 'profile.watchedTags',
-            'profile.watchedMarkets', 'profile.watchedExchanges', 'profile.watchedPosts'] });
+        const found = await this.findOne({name}, { relations: ['profile'] });
         return found;
     }
 

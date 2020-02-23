@@ -58,7 +58,7 @@ export class UserEntity extends BaseEntity {
         return await bcrypt.compare(password, this.password);
     }
 
-    @OneToMany(() => PostEntity, postEntity => postEntity.owner, { cascade: true, eager: true })
+    @OneToMany(() => PostEntity, postEntity => postEntity.owner, { eager: true })
     posts: PostEntity[];
 
     @OneToMany(() => ListingRating, (listingRating) => listingRating.user)

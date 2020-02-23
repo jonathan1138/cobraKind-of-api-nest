@@ -35,15 +35,23 @@ export class UserService {
   }
 
   async getUserByName(name: string): Promise<UserEntity> {
-    return this.userRepository.getUserByName( name );
+    return this.userRepository.getUserByName(name);
   }
 
   async getUserById(id: string): Promise<UserEntity> {
-    return this.userRepository.getUserById( id );
+    return this.userRepository.getUserById(id);
   }
 
   async getUserByIdWCreations(id: string): Promise<UserEntity> {
-    return this.userRepository.getUserByIdWCreations( id );
+    return this.userRepository.getUserByIdWCreations(id);
+  }
+
+  async getUserByIdWatched(id: string): Promise<UserEntity> {
+    return this.userRepository.getUserByIdWatched(id);
+  }
+
+  async getUserByIdPosts(id: string): Promise<UserEntity> {
+    return this.userRepository.getUserByIdPosts(id);
   }
 
   async getAllUsers(filterDto: GetUsersFilterDto, user: UserEntity, page: number = 1): Promise<UserEntity[]> {

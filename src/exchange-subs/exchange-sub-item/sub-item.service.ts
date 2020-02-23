@@ -44,6 +44,10 @@ export class SubItemService {
         return await this.subItemRepository.getSubItemById(id);
     }
 
+    async subItemByName(name: string): Promise<SubItem> {
+        return await this.subItemRepository.subItemByName(name);
+    }
+
     async getSubItemByIdIncrementView(id: string, ipAddress: string): Promise<SubItem> {
       const subItem =  await this.subItemRepository.getSubItemByIdForViews(id);
       if (subItem) {

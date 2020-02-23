@@ -16,6 +16,10 @@ import { PriceRatingInfoRepository } from 'src/exchange-price-rating-info/price-
 import { MarketRepository } from 'src/market/market.repository';
 import { DeletePostDto } from './dto/delete-post-dto';
 import { ListingStatusNote } from 'src/shared/enums/listing-status-note.enum';
+import { PostListingType } from '../shared/enums/post-listing-type.enum';
+import { PartRepository } from 'src/market-part/part.repository';
+import { SubItemRepository } from 'src/exchange-subs/exchange-sub-item/sub-item.repository';
+import { Market } from '../market/market.entity';
 
 @Injectable()
 export class PostService {
@@ -24,6 +28,10 @@ export class PostService {
         private postRepository: PostRepository,
         @InjectRepository(ExchangeRepository)
         private exchangeRepository: ExchangeRepository,
+        @InjectRepository(PartRepository)
+        private partRepository: PartRepository,
+        @InjectRepository(SubItemRepository)
+        private subItemRepository: SubItemRepository,
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
         @InjectRepository(PriceRatingInfoRepository)
@@ -66,21 +74,42 @@ export class PostService {
        return await this.postRepository.getPostsByExchange(filterDto, postId);
     }
 
-    async createPost(createPostDto: CreatePostDto, exchangeId: string, user: UserEntity,
+    async createPost(createPostDto: CreatePostDto, id: string, user: UserEntity,
                      images?: object[], filenameInPath?: boolean): Promise<PostEntity> {
-        const exchange = await this.exchangeRepository.getExchangeById(exchangeId);
-        const market = await this.marketRepository.getMarketById(exchange.marketId);
+        let market = new Market();
+        let createdPost = new PostEntity();
+        switch (createPostDto.postListingType) {
+            case PostListingType.EXCHANGE:
+                const exchange = await this.exchangeRepository.getExchangeById(id);
+                market = await this.marketRepository.getMarketById(exchange.marketId);
+                createdPost = await this.postRepository.createExchangePost(createPostDto, market, user, exchange);
+                break;
+            case PostListingType.PART:
+                const part = await this.partRepository.getPartById(id);
+                market = await this.marketRepository.getMarketById(part.marketId);
+                createdPost = await this.postRepository.createPartPost(createPostDto, market, user, part);
+                break;
+            case PostListingType.SUBITEM:
+                const subItem = await this.subItemRepository.getSubItemById(id);
+                const tmpExchange = await this.exchangeRepository.getExchangeById(subItem.exchangeId);
+                market = await this.marketRepository.getMarketById(tmpExchange.marketId);
+                createdPost = await this.postRepository.createSubItemPost(createPostDto, market, user, subItem);
+                break;
+            default:
+                throw new NotAcceptableException(`Unacceptable Post Listing Type`);
+            }
+
         if ( Array.isArray(images) && images.length > 0) {
-            const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.POST_IMG_FOLDER, filenameInPath);
-            createPostDto.images = s3ImageArray;
-        }
-        const post = this.postRepository.createPost(createPostDto, exchange, market, user);
-        // if (createPostDto.postType === PostType.COBRA) {
+                const s3ImageArray = await this.s3UploadService.uploadImageBatch(images, ImgFolder.POST_IMG_FOLDER, filenameInPath);
+                createPostDto.images = s3ImageArray;
+            }
+        return createdPost;
+        // const exchange = await this.exchangeRepository.getExchangeById(id);
+        // if (createPostDto.PostSide === PostSide.COBRA) {
         //     exchange.priceRatingInfo.id
         // } else {
 
         // }
-        return post;
     }
 
     async deletePost(deletePostDto: DeletePostDto): Promise<void> {
@@ -109,7 +138,7 @@ export class PostService {
     }
 
     async updatePost(id: string, createPostDto: CreatePostDto): Promise<void> {
-        if ( createPostDto.title || createPostDto.description || createPostDto.price || createPostDto.type || createPostDto.condition ) {
+        if ( createPostDto.title || createPostDto.description || createPostDto.price || createPostDto.side || createPostDto.condition ) {
             return this.postRepository.updatePost(id, createPostDto);
         }
     }
@@ -117,7 +146,7 @@ export class PostService {
     async uploadPostImages(id: string, image: any, filenameInPath?: boolean): Promise<string[]> {
         if (image) {
             const post = await this.postRepository.getPostById(id);
-            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.SUBITEM_IMG_FOLDER, filenameInPath);
+            const s3ImgUrlArray = await this.s3UploadService.uploadImageBatch(image, ImgFolder.POST_IMG_FOLDER, filenameInPath);
             s3ImgUrlArray.forEach(item => {
                 post.images.push(item);
             });
@@ -155,9 +184,51 @@ export class PostService {
       const deleteIndex = user.profile.watchedPosts.findIndex(item => item.id === id);
       if (deleteIndex >= 0) {
           user.profile.watchedPosts.splice(deleteIndex, 1);
-          post.watchCount--;
+          if (post.watchCount > 0) { post.watchCount--; }
           await this.userRepository.save(user);
           return await this.postRepository.save(post);
         }
+    }
+
+    async updateWatchedPosts(id: string, posts: string[] ): Promise<UserEntity> {
+        const user = await this.userRepository.findOne(id, {relations: ['profile', 'profile.watchedPosts']});
+        const currentPosts = user.profile.watchedPosts.map(a => a.id);
+        let toRemove = [];
+        let toAdd = [];
+        if (posts) {
+            toRemove = currentPosts.filter(x => !posts.includes(x));
+            toAdd = posts.filter(x => !currentPosts.includes(x));
+        } else {
+            toRemove = currentPosts;
+        }
+        user.profile.watchedPosts = await this.processPosts(posts, toAdd);
+        toRemove.forEach(async (post) => {
+            const foundPost = await this.postRepository.findOne({id: post});
+            if (foundPost.watchCount >= 0) {
+                foundPost.watchCount--;
+                foundPost.save();
+            }
+
+        });
+        return await this.userRepository.save(user);
+    }
+
+    private async processPosts(posts: string[], toAdd: string[]): Promise<PostEntity[]> {
+        const newPosts: PostEntity[] = [];
+        if (posts) {
+            const uploadPromises = posts.map(async (post, index: number) => {
+                // formerly find one by name; changed on 11/24
+                const foundPost = await this.postRepository.findOne({id: post});
+                if (foundPost) {
+                    newPosts.push(foundPost);
+                    if (toAdd.includes(foundPost.id)) {
+                        foundPost.watchCount++;
+                        foundPost.save();
+                    }
+                }
+            });
+            await Promise.all(uploadPromises);
+        }
+        return newPosts;
     }
 }

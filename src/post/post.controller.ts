@@ -1,7 +1,7 @@
 import { Controller, Delete, Param, ParseUUIDPipe, Post,
-    UseInterceptors, UploadedFile, ValidationPipe, Query, Get, UsePipes, UploadedFiles,
+    UseInterceptors, ValidationPipe, Query, Get, UsePipes, UploadedFiles,
     Body, Patch, UseGuards, ClassSerializerInterceptor } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { PostService } from './post.service';
 import { PostEntity } from './post.entity';
@@ -51,18 +51,18 @@ export class PostController {
             return this.postService.getPostsByExchange(filterDto, id);
     }
 
-    @Post('/:exchangeid')
+    @Post('/:id')
     @UseGuards(AuthGuard())
     @UsePipes(ValidationPipe)
     @UseInterceptors(FilesInterceptor('images'))
     createPost(
-        @Param('exchangeid', new ParseUUIDPipe()) exchangeId: string,
+        @Param('id', new ParseUUIDPipe()) id: string,
         @UploadedFiles() images: any,
         @Body() createPostDto: CreatePostDto,
         @GetUser() user: UserEntity,
         ): Promise<PostEntity> {
         createPostDto.images = images;
-        return this.postService.createPost(createPostDto, exchangeId, user, images);
+        return this.postService.createPost(createPostDto, id, user, images);
     }
 
     @Delete()
@@ -91,6 +91,15 @@ export class PostController {
             return this.postService.updatePost(id, createPostDto);
     }
 
+    @Patch('/watchedposts/:id')
+    @UseGuards(AuthGuard())
+    async updateWatchedPosts(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body('posts') posts: string[],
+        ): Promise<UserEntity> {
+            return await this.postService.updateWatchedPosts(id, posts);
+    }
+
     @Post('/images/:id')
     @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('image'))
@@ -100,14 +109,14 @@ export class PostController {
 
     @Post('/watch/:id')
     @UseGuards(AuthGuard())
-    watch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
-      return this.postService.watchPost(id, user.id);
+    async watch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
+      return await this.postService.watchPost(id, user.id);
     }
 
     @Post('/unwatch/:id')
     @UseGuards(AuthGuard())
-    unwatch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
-      return this.postService.unWatchPost(id, user.id);
+    async unwatch(@Param('id') id: string, @GetUser() user: UserEntity): Promise<PostEntity> {
+      return await this.postService.unWatchPost(id, user.id);
     }
 
     @Delete('/images/:id')

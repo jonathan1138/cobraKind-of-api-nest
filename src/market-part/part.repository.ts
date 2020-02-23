@@ -1,6 +1,6 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { Part } from './part.entity';
-import { Logger, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Logger, InternalServerErrorException, NotFoundException, ConflictException, NotAcceptableException } from '@nestjs/common';
 import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filter.dto';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Market } from 'src/market/market.entity';
@@ -50,6 +50,18 @@ export class PartRepository extends Repository<Part> {
         }
         this.incrementView(id);
         return found;
+    }
+
+    async partByName(name: string): Promise<Part> {
+        const query = this.createQueryBuilder('part');
+        query.andWhere('part.name = :name', { name });
+        try {
+            const found = await query.getOne();
+            return found;
+        } catch (error) {
+           // this.logger.error(`Invalid Tag Supplied`, error.stack);
+            throw new NotAcceptableException('Invalid Name Supplied');
+        }
     }
 
     async getPartByIdForViews(id: string): Promise<Part> {

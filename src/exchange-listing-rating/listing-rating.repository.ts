@@ -5,7 +5,7 @@ import { StatusAndSearchFilterDto } from 'src/shared/filters/status-search.filte
 import { CreateListingRatingDto } from './dto/create-listing-rating-dto';
 import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { PostType } from '../shared/enums/post-type.enum';
+import { PostSide } from '../shared/enums/post-side.enum';
 
 @EntityRepository(ListingRating)
 export class ListingRatingRepository extends Repository<ListingRating> {
@@ -78,9 +78,9 @@ export class ListingRatingRepository extends Repository<ListingRating> {
         listingRating.comment = comment;
         listingRating.rating = rating;
         if ( listingRating.rating <= 3) {
-            listingRating.listingRatingType = PostType.COBRA;
+            listingRating.listingRatingType = PostSide.COBRA;
             } else {
-            listingRating.listingRatingType = PostType.KIND;
+            listingRating.listingRatingType = PostSide.KIND;
         }
 
         listingRating.exchange = exchange;

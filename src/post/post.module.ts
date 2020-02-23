@@ -11,9 +11,10 @@ import { UserIp } from '../user-ip-for-views/user-ip.entity';
 import { PriceRatingInfoRepository } from '../exchange-price-rating-info/price-rating-info.repository';
 import { SubItemRepository } from 'src/exchange-subs/exchange-sub-item/sub-item.repository';
 import { MarketRepository } from 'src/market/market.repository';
+import { PartRepository } from 'src/market-part/part.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostRepository, UserRepository, ExchangeRepository,
+  imports: [TypeOrmModule.forFeature([PostRepository, PartRepository, UserRepository, ExchangeRepository,
     SubItemRepository, MarketRepository, UserIp, PriceRatingInfoRepository]), AuthModule],
   controllers: [PostController],
   providers: [PostService, S3UploadService],

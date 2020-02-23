@@ -24,13 +24,18 @@ import { PartRepository } from '../../../market-part/part.repository';
 import { PartService } from '../../../market-part/part.service';
 import { SubItemRepository } from '../../../exchange-subs/exchange-sub-item/sub-item.repository';
 import { SubItemService } from 'src/exchange-subs/exchange-sub-item/sub-item.service';
+import { PostService } from 'src/post/post.service';
+import { PostRepository } from '../../../post/post.repository';
+import { PriceRatingInfoRepository } from '../../../exchange-price-rating-info/price-rating-info.repository';
+import { UserService } from '../../../user/user.service';
+import { FollowsEntity } from '../../../user/entities/follows.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository,
-        UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository,
-        ManufacturerRepository, CreatedYearRepository, PartRepository, SubItemRepository]), AuthModule],
+    imports: [TypeOrmModule.forFeature([MarketRepository, CategoryRepository, TagRepository, PriceRatingInfoRepository,
+        UserRepository, UserIp, ProfileRepository, ExchangeRepository, GenreRepository, SubVariationRepository, FollowsEntity,
+        ManufacturerRepository, CreatedYearRepository, PartRepository, SubItemRepository, PostRepository]), AuthModule],
     controllers: [FileReaderController],
     providers: [FileReaderService, CategoryService, MarketService, S3UploadService,
-        SubItemService, ProfileService, TagService, ExchangeService, PartService],
+        SubItemService, ProfileService, TagService, ExchangeService, PartService, PostService, UserService],
 })
 export class FileReaderModule {}

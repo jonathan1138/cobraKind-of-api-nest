@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity, ManyToMany, JoinTable, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, BaseEntity, ManyToMany, JoinTable, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { Market } from 'src/market/market.entity';
 import { ListingStatus } from 'src/shared/enums/listing-status.enum';
 import { Manufacturer } from 'src/manufacturer/manufacturer.entity';
@@ -6,6 +6,7 @@ import { CreatedYear } from 'src/created-year/year.entity';
 import { Exchange } from 'src/market-exchange/exchange.entity';
 import { UserIp } from 'src/user-ip-for-views/user-ip.entity';
 import { PriceRatingInfo } from 'src/exchange-price-rating-info/price-rating-info.entity';
+import { PostEntity } from 'src/post/post.entity';
 
 @Entity()
 export class Part extends BaseEntity {
@@ -65,4 +66,7 @@ export class Part extends BaseEntity {
 
     @ManyToOne(() => CreatedYear, createdYear => createdYear.parts, { eager: true, cascade: true } )
     createdYear: CreatedYear;
+
+    @OneToMany(() => PostEntity, post => post.part, { eager: true })
+    posts: PostEntity[];
 }
